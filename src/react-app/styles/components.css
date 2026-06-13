@@ -1,0 +1,98 @@
+/* M0.4 共享组件样式 */
+
+/* ---- CardThumbnail ---- */
+.card-thumb {
+  position: relative; display: block; border-radius: var(--radius-sm);
+  overflow: hidden; background: var(--bg-2);
+  aspect-ratio: 1 / 1.4665;
+  transition: transform .18s ease, box-shadow .18s ease;
+  border: 1px solid var(--line);
+}
+.card-thumb:hover { transform: translateY(-4px); box-shadow: var(--shadow-2); }
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.card-thumb .ct-skel { width:100%; height:100%; background: linear-gradient(100deg,var(--bg-2),var(--bg-3),var(--bg-2)); background-size:200% 100%; animation: shimmer 1.2s infinite; }
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+.card-thumb .ct-name {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 18px 8px 6px; font-size: 12px; line-height: 1.3;
+  color: #fff; background: linear-gradient(transparent, rgba(0,0,0,.82));
+  opacity: 0; transition: opacity .18s; pointer-events: none;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-thumb:hover .ct-name { opacity: 1; }
+.card-thumb .ct-badge {
+  position: absolute; top: 6px; left: 6px; z-index: 2;
+}
+
+/* ---- AttributeIcon ---- */
+.attr-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-family: var(--font-display); font-weight: 700;
+  color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35), var(--shadow-1);
+  user-select: none;
+}
+
+/* ---- Stars ---- */
+.stars { display: inline-flex; gap: 2px; flex-wrap: wrap; align-items: center; }
+.star { color: var(--gold-soft); filter: drop-shadow(0 1px 1px rgba(0,0,0,.5)); }
+.star.rank { color: #4aa3ff; }
+
+/* ---- LinkMarkers ---- */
+.link-markers {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+  width: 54px; height: 54px;
+}
+.lm-cell { display:flex; align-items:center; justify-content:center; font-size: 12px; color: var(--bg-1); }
+.lm-cell.on { color: #ff5a5a; text-shadow: 0 0 6px rgba(255,90,90,.8); }
+.lm-cell.center { background: var(--bg-3); border-radius: 3px; }
+
+/* ---- EffectText ---- */
+.effect-text {
+  white-space: pre-wrap; line-height: 1.85; color: var(--text-0);
+  font-size: 15px; background: var(--bg-1); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: var(--sp-5);
+}
+
+/* ---- AppShell nav ---- */
+.topnav {
+  position: sticky; top: 0; z-index: 50; height: var(--nav-h);
+  display: flex; align-items: center; gap: var(--sp-5);
+  background: rgba(11,12,16,.82); backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.topnav .brand { font-family: var(--font-display); font-weight: 800; font-size: 19px; letter-spacing:.02em; display:flex; align-items:center; gap:8px;}
+.topnav .brand b { color: var(--gold); }
+.topnav nav { display: flex; gap: 4px; }
+.topnav nav a {
+  padding: 8px 14px; border-radius: var(--radius-sm); color: var(--text-1);
+  font-size: 15px; transition: .15s;
+}
+.topnav nav a:hover { color: var(--text-0); background: var(--bg-2); }
+.topnav nav a.active { color: var(--gold); background: rgba(217,179,94,.1); }
+.topnav .spacer { flex: 1; }
+
+.bottomnav { display: none; }
+@media (max-width: 720px) {
+  .topnav nav { display: none; }
+  .bottomnav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+    height: 58px; background: rgba(15,17,22,.96); backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line);
+  }
+  .bottomnav a {
+    flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; font-size: 11px; color: var(--text-2);
+  }
+  .bottomnav a.active { color: var(--gold); }
+  .bottomnav a svg { width: 22px; height: 22px; }
+  .app-main { padding-bottom: 72px; }
+}
+
+/* ---- 通用页面块 ---- */
+.page { padding: var(--sp-6) 0 var(--sp-8); }
+.page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom: var(--sp-5); flex-wrap: wrap;}
+.page-head h1 { font-size: 28px; }
+.page-head .sub { color: var(--text-2); font-size: 14px; margin-top: 4px;}
+
+.spinner { width: 34px; height: 34px; border: 3px solid var(--line-strong); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin: 60px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }

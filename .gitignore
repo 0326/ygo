@@ -197,3 +197,10 @@ dist
 !.env.example
 .dev.vars*
 !.dev.vars.example
+
+### Project data (large source dumps + generated seed) ###
+/data/cards.cdb
+/data/ygoprodeck-full.json
+/data/seed.sql
+/data/normalized.json
+/data/ygoprodeck-sets.json

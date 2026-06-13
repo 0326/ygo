@@ -1,0 +1,41 @@
+/* M0.4 设计系统 · Design tokens（全站只读复用） */
+:root {
+  /* 底色：深邃近黑 + 暖金点缀，让卡图成为主角 */
+  --bg-0: #0b0c10;          /* 最底 */
+  --bg-1: #121419;          /* 面板 */
+  --bg-2: #1a1d25;          /* 卡片/输入 */
+  --bg-3: #242833;          /* hover */
+  --line: #2c313d;          /* 描边 */
+  --line-strong: #3a4150;
+
+  --text-0: #f4f1ea;        /* 主文 */
+  --text-1: #b8bcc6;        /* 次文 */
+  --text-2: #7d828f;        /* 弱文 */
+
+  --gold: #d9b35e;          /* 品牌金 */
+  --gold-soft: #e8cf94;
+  --accent: #d9b35e;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+
+  --shadow-1: 0 2px 8px rgba(0,0,0,.35);
+  --shadow-2: 0 10px 30px rgba(0,0,0,.45);
+  --shadow-glow: 0 0 0 1px rgba(217,179,94,.25), 0 8px 30px rgba(217,179,94,.12);
+
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+
+  --maxw: 1180px;
+  --nav-h: 60px;
+
+  --font: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-display: "Source Han Serif SC", "Noto Serif SC", "Songti SC", var(--font);
+
+  /* 卡比例 */
+  --card-ratio: 1.4665; /* 高/宽 ≈ 59/40.2 */
+}
+
+/* 移动端断点：< 720px */

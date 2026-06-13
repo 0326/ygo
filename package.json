@@ -14,7 +14,8 @@
 	"dependencies": {
 		"hono": "4.11.1",
 		"react": "19.2.1",
-		"react-dom": "19.2.1"
+		"react-dom": "19.2.1",
+		"react-router-dom": "^7.17.0"
 	},
 	"devDependencies": {
 		"@cloudflare/vite-plugin": "1.15.3",
@@ -40,7 +41,13 @@
 		"deploy": "wrangler deploy",
 		"dev": "vite",
 		"lint": "eslint .",
-		"preview": "npm run build && vite preview"
+		"preview": "npm run build && vite preview",
+		"data:build": "node scripts/build-data.mjs",
+		"db:migrate": "wrangler d1 execute ygo-db --local --file=migrations/0001_init.sql",
+		"db:seed": "wrangler d1 execute ygo-db --local --file=data/seed.sql",
+		"db:setup": "npm run db:migrate && npm run db:seed",
+		"db:migrate:remote": "wrangler d1 execute ygo-db --remote --file=migrations/0001_init.sql",
+		"db:seed:remote": "wrangler d1 execute ygo-db --remote --file=data/seed.sql"
 	},
 	"type": "module"
 }
