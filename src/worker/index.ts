@@ -46,7 +46,7 @@ const intParam = (v: string | undefined, def: number) => {
 app.get("/api/search", (c) =>
   cached(c, 300, () => {
     const q = c.req.query();
-    return Q.search(c.env.DB, {
+    return Q.search(c.env.ygo_db, {
       q: q.q, frame: q.frame, attribute: q.attribute, race: q.race,
       level: q.level, archetype: q.archetype, type: q.type, sort: q.sort,
       page: intParam(q.page, 1),
@@ -57,28 +57,28 @@ app.get("/api/search", (c) =>
 
 // ---------- 卡片详情 / 异画 ----------
 app.get("/api/cards/:id", (c) =>
-  cached(c, 3600, () => Q.cardDetail(c.env.DB, intParam(c.req.param("id"), 0)))
+  cached(c, 3600, () => Q.cardDetail(c.env.ygo_db, intParam(c.req.param("id"), 0)))
 );
 app.get("/api/cards/:id/artworks", (c) =>
-  cached(c, 3600, () => Q.getArtworks(c.env.DB, intParam(c.req.param("id"), 0)))
+  cached(c, 3600, () => Q.getArtworks(c.env.ygo_db, intParam(c.req.param("id"), 0)))
 );
 
 // ---------- 系列图鉴 ----------
 app.get("/api/archetypes", (c) =>
-  cached(c, 3600, () => Q.listArchetypes(c.env.DB, intParam(c.req.query("min"), 6)))
+  cached(c, 3600, () => Q.listArchetypes(c.env.ygo_db, intParam(c.req.query("min"), 6)))
 );
 app.get("/api/archetypes/:id", (c) =>
-  cached(c, 3600, () => Q.archetypeDetail(c.env.DB, intParam(c.req.param("id"), 0)))
+  cached(c, 3600, () => Q.archetypeDetail(c.env.ygo_db, intParam(c.req.param("id"), 0)))
 );
 
 // ---------- 卡包 ----------
-app.get("/api/sets", (c) => cached(c, 3600, () => Q.listSets(c.env.DB)));
+app.get("/api/sets", (c) => cached(c, 3600, () => Q.listSets(c.env.ygo_db)));
 app.get("/api/sets/:code", (c) =>
-  cached(c, 3600, () => Q.setDetail(c.env.DB, c.req.param("code")))
+  cached(c, 3600, () => Q.setDetail(c.env.ygo_db, c.req.param("code")))
 );
 
 // ---------- 站点统计 ----------
-app.get("/api/stats", (c) => cached(c, 3600, () => Q.stats(c.env.DB)));
+app.get("/api/stats", (c) => cached(c, 3600, () => Q.stats(c.env.ygo_db)));
 
 // ---------- 卡图代理（M0.2，自托管而非热链） ----------
 app.get("/img/:key/s", (c) => proxyImage(c.req.raw, c.req.param("key"), true));

@@ -16,12 +16,6 @@
 	},
 	"d1_databases": [
 		{
-			"binding": "DB",
-			"database_name": "ygo-db",
-			"database_id": "local-ygo-db-0000-0000-0000-000000000000",
-			"migrations_dir": "migrations"
-		},
-		{
 			"binding": "ygo_db",
 			"database_name": "ygo-db",
 			"database_id": "677b44dc-e5c7-4d8f-a180-999da41bf26b",
