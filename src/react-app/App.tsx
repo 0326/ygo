@@ -12,6 +12,7 @@ import { Sets, SetDetail } from "./pages/Sets";
 // Track B（Canvas 创作套件）按需加载
 const CardMaker = lazy(() => import("./pages/CardMaker"));
 const ShareImage = lazy(() => import("./pages/ShareImage"));
+const DeckBuilder = lazy(() => import("./pages/DeckBuilder"));
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/sets/:code" element={<SetDetail />} />
             <Route path="/maker" element={<CardMaker />} />
             <Route path="/share" element={<ShareImage />} />
+            <Route path="/deck" element={<DeckBuilder />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
