@@ -3,7 +3,9 @@
 	"name": "ygo",
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"observability": {
 		"enabled": true
 	},
@@ -18,6 +20,12 @@
 			"database_name": "ygo-db",
 			"database_id": "local-ygo-db-0000-0000-0000-000000000000",
 			"migrations_dir": "migrations"
+		},
+		{
+			"binding": "ygo_db",
+			"database_name": "ygo-db",
+			"database_id": "677b44dc-e5c7-4d8f-a180-999da41bf26b",
+			"remote": true
 		}
 	]
 }
