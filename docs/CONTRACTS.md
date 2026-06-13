@@ -1,0 +1,50 @@
+# M0 共享契约（冻结版 v1）
+
+> 本文件是全站**唯一事实源**。M1（Track A）、M2（Track B）一律**只读消费**。
+> 任何 schema / API / 共享组件的变更，必须回到 M0 在此统一修改并广播，禁止在 feature 代码里私改。
+
+## 4.1 数据 Schema（D1）
+
+见 [`migrations/0001_init.sql`](../migrations/0001_init.sql)。要点：
+
+- `cards`：卡密(passcode)为主键；`frame` 去掉了 `_pendulum` 后缀，灵摆与否由 `scale IS NOT NULL` 判定。
+- `card_artworks`：一卡多图，`is_default=1` 为默认画；其余为异画（`variant_name`）。
+- `archetypes` / `sets` / `card_prints`：系列、卡包、收录/罕贵。
+- `cards_fts`：FTS5 **trigram** 虚表，覆盖 `cn_name / en_name / effect_cn`，支持中文子串检索。
+
+## 4.2 数据 API（Workers 动态查询）
+
+实现见 [`src/worker/index.ts`](../src/worker/index.ts) + [`src/worker/lib/queries.ts`](../src/worker/lib/queries.ts)。
+TypeScript 形态见 [`src/shared/types.ts`](../src/shared/types.ts)（前后端共享）。
+
+| 端点 | 返回 | 缓存 |
+|---|---|---|
+| `GET /api/search?q=&frame=&attribute=&race=&level=&archetype=&type=&sort=&page=&size=` | `SearchResponse` | 300s |
+| `GET /api/cards/:id` | `CardDetail` | 3600s |
+| `GET /api/cards/:id/artworks` | `Artwork[]` | 3600s |
+| `GET /api/archetypes?min=` | `ArchetypeSummary[]` | 3600s |
+| `GET /api/archetypes/:id` | `{ archetype, cards }` | 3600s |
+| `GET /api/sets` | `SetSummary[]` | 3600s |
+| `GET /api/sets/:code` | `{ set, cards }` | 3600s |
+| `GET /api/stats` | 站点统计 | 3600s |
+| `GET /img/:key` / `GET /img/:key/s` | 卡图(自托管代理) | 30d |
+
+- 多值筛选（`frame`/`attribute`/`race`/`type`）用英文 key、逗号分隔，例如 `frame=fusion,synchro`。
+- 缓存：所有 `/api/*` 经 Cache API 边缘缓存（卡片数据近静态），避免打爆 D1 免费读配额。
+- 图片 URL 契约：`/img/{image_key}` 与 `/img/{image_key}/s`（缩略）。终态切到 R2 自定义域名 `img.hajimikitty.com` 时前端无感。
+
+## 4.3 设计系统 & 共享组件
+
+- **Design tokens**：[`src/react-app/styles/tokens.css`](../src/react-app/styles/tokens.css)（配色按卡框色系延展、CJK 字体、间距、圆角、移动端断点 720px）。
+- **显示映射**：[`src/react-app/lib/labels.ts`](../src/react-app/lib/labels.ts)（属性/卡框/种族 → 简中 + 配色）。
+- **API 客户端**：[`src/react-app/lib/api.ts`](../src/react-app/lib/api.ts)。
+- **基础组件**：`CardThumbnail`/`CardGrid`、`AttributeIcon`、`LevelStars`、`LinkMarkers`、`FrameBadge`、`SearchBar`、`FilterPanel`、`SeriesGrid`、`AppShell`、`Spinner/Empty/ErrorBox`。
+- **Canvas 渲染基座**：`src/react-app/canvas/CardCanvasRenderer.ts`（制卡器 M2.1 与长图 M2.2 共用）、`ShareImageComposer.ts`。
+
+## 模块归属（owns）
+
+| 模块 | 拥有路径 |
+|---|---|
+| M0 | `migrations/`、`scripts/`、`src/worker/`、`src/shared/`、`src/react-app/lib/`、`src/react-app/styles/`、`src/react-app/components/` |
+| M1 Track A | `pages/Home/Search/CardDetail/Archetypes/ArchetypeDetail/Sets` |
+| M2 Track B | `src/react-app/canvas/`、`pages/CardMaker`、`pages/ShareImage` |

@@ -19,6 +19,8 @@ export default tseslint.config(
 		},
 		rules: {
 			...reactHooks.configs.recommended.rules,
+			// 路由切换时在 effect 内重置并发起请求是标准数据获取模式，此规则在该场景下为误报，降级为提示。
+			"react-hooks/set-state-in-effect": "warn",
 			"react-refresh/only-export-components": [
 				"warn",
 				{ allowConstantExport: true },

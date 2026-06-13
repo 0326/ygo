@@ -1,0 +1,238 @@
+/* M2.1 自定义制卡器样式 */
+.maker-page {
+  padding: var(--sp-6) 0 var(--sp-8);
+}
+.maker-page .page-head {
+  margin-bottom: var(--sp-6);
+}
+.maker-page .page-head h1 {
+  font-size: 28px;
+  margin-bottom: var(--sp-2);
+}
+
+.maker-layout {
+  display: grid;
+  grid-template-columns: minmax(360px, 420px) 1fr;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+/* 左：预览（粘性） */
+.maker-preview {
+  position: sticky;
+  top: calc(var(--nav-h) + var(--sp-4));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.maker-canvas-wrap {
+  padding: var(--sp-4);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(217, 179, 94, 0.08), transparent 70%),
+    var(--bg-1);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-2);
+}
+.maker-canvas {
+  display: block;
+  border-radius: var(--radius);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.maker-export {
+  width: 100%;
+  justify-content: center;
+  font-size: 15px;
+  padding: 12px;
+}
+.maker-hint {
+  font-size: 12px;
+  margin: 0;
+}
+
+/* 右：表单 */
+.maker-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+.maker-fs {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-4) var(--sp-4) var(--sp-5);
+  background: var(--bg-1);
+  margin: 0;
+}
+.maker-fs legend {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--gold);
+  padding: 0 var(--sp-2);
+}
+
+.maker-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: var(--sp-3);
+  flex: 1;
+}
+.maker-field > span {
+  font-size: 13px;
+  color: var(--text-1);
+}
+.maker-field:first-of-type {
+  margin-top: var(--sp-2);
+}
+
+.maker-row {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: flex-end;
+}
+.maker-row .maker-input {
+  flex: 1;
+}
+
+.maker-input {
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-0);
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: 0.15s;
+}
+.maker-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(217, 179, 94, 0.12);
+}
+.maker-textarea {
+  resize: vertical;
+  line-height: 1.5;
+  min-height: 96px;
+}
+select.maker-input {
+  cursor: pointer;
+}
+
+/* 分段按钮 */
+.maker-seg {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.maker-seg-btn {
+  flex: 1;
+  min-width: 56px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  color: var(--text-1);
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: 0.15s;
+}
+.maker-seg-btn:hover {
+  border-color: var(--gold);
+}
+.maker-seg-btn.on {
+  background: linear-gradient(135deg, var(--gold), #b8954a);
+  color: #2a2208;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+/* 复选 */
+.maker-toggles {
+  display: flex;
+  gap: var(--sp-4);
+  flex-wrap: wrap;
+  margin-top: var(--sp-2);
+}
+.maker-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-1);
+  cursor: pointer;
+}
+.maker-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--gold);
+}
+
+/* 连接标记九宫格 */
+.maker-marker-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  max-width: 200px;
+  margin-top: 8px;
+}
+.maker-marker {
+  aspect-ratio: 1;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  font-size: 20px;
+  transition: 0.15s;
+}
+.maker-marker:hover {
+  border-color: var(--gold);
+  color: var(--text-0);
+}
+.maker-marker.on {
+  background: rgba(255, 60, 60, 0.18);
+  border-color: #ff3b3b;
+  color: #ff5b5b;
+  box-shadow: 0 0 12px rgba(255, 60, 60, 0.3);
+}
+.maker-marker-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.maker-upload {
+  cursor: pointer;
+  margin-right: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+.maker-msg {
+  font-size: 13px;
+  margin: var(--sp-2) 0 0;
+}
+
+/* 移动端：堆叠 */
+@media (max-width: 720px) {
+  .maker-layout {
+    grid-template-columns: 1fr;
+    gap: var(--sp-4);
+  }
+  .maker-preview {
+    position: static;
+  }
+  .maker-canvas {
+    max-width: 100%;
+    height: auto !important;
+  }
+  .maker-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

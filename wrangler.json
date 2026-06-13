@@ -3,7 +3,9 @@
 	"name": "ygo",
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"observability": {
 		"enabled": true
 	},
@@ -11,5 +13,13 @@
 	"assets": {
 		"directory": "./dist/client",
 		"not_found_handling": "single-page-application"
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "ygo_db",
+			"database_name": "ygo-db",
+			"database_id": "677b44dc-e5c7-4d8f-a180-999da41bf26b",
+			"remote": true
+		}
+	]
 }
