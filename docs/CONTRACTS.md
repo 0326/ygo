@@ -47,4 +47,4 @@ TypeScript 形态见 [`src/shared/types.ts`](../src/shared/types.ts)（前后端
 |---|---|
 | M0 | `migrations/`、`scripts/`、`src/worker/`、`src/shared/`、`src/react-app/lib/`、`src/react-app/styles/`、`src/react-app/components/` |
 | M1 Track A | `pages/Home/Search/CardDetail/Archetypes/ArchetypeDetail/Sets` |
-| M2 Track B | `src/react-app/canvas/`、`pages/CardMaker`、`pages/ShareImage` |
+| M2 Track B | `src/react-app/canvas/`、`pages/CardMaker`、`pages/ShareImage`、`pages/DeckBuilder`、`lib/deck.ts` |
