@@ -219,11 +219,17 @@ export async function listSets(db: D1Database): Promise<SetSummary[]> {
   const { results } = await db
     .prepare(
       `SELECT s.code,s.cn_name,s.en_name,s.release_date,
-        (SELECT count(DISTINCT card_id) FROM card_prints p WHERE p.set_code=s.code) AS card_count
+        (SELECT count(DISTINCT card_id) FROM card_prints p WHERE p.set_code=s.code) AS card_count,
+        (SELECT w.image_key FROM card_prints p
+           JOIN card_artworks w ON w.card_id=p.card_id
+           WHERE p.set_code=s.code ORDER BY w.is_default DESC LIMIT 1) AS cover_key
        FROM sets s ORDER BY s.release_date IS NULL, s.release_date DESC LIMIT 300`
     )
-    .all<SetSummary>();
-  return results || [];
+    .all<SetSummary & { cover_key: string | null }>();
+  return (results || []).map(({ cover_key, ...s }) => ({
+    ...s,
+    cover_thumb_url: cover_key ? thumbUrl(cover_key) : null,
+  }));
 }
 
 export async function setDetail(

@@ -80,4 +80,5 @@ export interface SetSummary {
   en_name: string;
   release_date: number | null;
   card_count: number;
+  cover_thumb_url?: string | null;
 }

@@ -58,25 +58,32 @@ export default function Search() {
       </div>
 
       <SearchBar value={q} onChange={setQ} onSubmit={submit} />
-      <FilterPanel filters={filters} onChange={setFilters} />
 
-      {err ? <ErrorBox msg={err} />
-        : loading && !data ? <Spinner />
-        : data && data.items.length === 0 ? <Empty text="没有匹配的卡片，换个条件试试" />
-        : data && (
-          <>
-            <div style={{ opacity: loading ? .5 : 1, transition: ".2s" }}>
-              <CardGrid cards={data.items} showAttr />
-            </div>
-            {totalPages > 1 && (
-              <div className="pager">
-                <button className="btn" disabled={page <= 1} onClick={() => run(page - 1)}>上一页</button>
-                <span className="cur">{page} / {totalPages}</span>
-                <button className="btn" disabled={page >= totalPages} onClick={() => run(page + 1)}>下一页</button>
-              </div>
+      <div className="search-layout">
+        <aside className="search-aside">
+          <FilterPanel filters={filters} onChange={setFilters} />
+        </aside>
+
+        <div className="search-results">
+          {err ? <ErrorBox msg={err} />
+            : loading && !data ? <Spinner />
+            : data && data.items.length === 0 ? <Empty text="没有匹配的卡片，换个条件试试" />
+            : data && (
+              <>
+                <div style={{ opacity: loading ? .5 : 1, transition: ".2s" }}>
+                  <CardGrid cards={data.items} showAttr />
+                </div>
+                {totalPages > 1 && (
+                  <div className="pager">
+                    <button className="btn" disabled={page <= 1} onClick={() => run(page - 1)}>上一页</button>
+                    <span className="cur">{page} / {totalPages}</span>
+                    <button className="btn" disabled={page >= totalPages} onClick={() => run(page + 1)}>下一页</button>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+        </div>
+      </div>
     </div>
   );
 }
