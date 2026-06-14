@@ -25,8 +25,8 @@ export interface ShareOptions {
   width?: number; // 输出宽度（默认 1080，适配手机竖屏分享）
 }
 
-const SITE_NAME = "哈基米卡库";
-const SITE_URL = "ygo.hajimikitty.com";
+const SITE_NAME = "游戏王集卡社";
+const SITE_URL = "抖音号 ygoclub";
 const BODY_FONT =
   '"PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif';
 const DISPLAY_FONT =
