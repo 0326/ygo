@@ -1,16 +1,16 @@
 // M2.3 组卡器：搜索卡池 → 添加到主/额外/副卡组（规则校验）→ 导出 YDK + 卡组一图流 + 分享链接。
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { CardSummary } from "../../shared/types";
+import type { CardSummary, BanFormat } from "../../shared/types";
 import { searchCards, getCard } from "../lib/api";
 import {
   emptyDeck, defaultZone, validate, countOf, toYdk, encodeDeck, decodeDeck,
-  uniqueIds, LIMITS, type Deck, type Zone,
+  uniqueIds, fromYdk, deckStats, hyperAtLeast, LIMITS, type Deck, type Zone,
 } from "../lib/deck";
 import { SearchBar } from "../components/SearchControls";
-import { AttributeIcon } from "../components/badges";
+import { AttributeIcon, BanBadge } from "../components/badges";
 import { Spinner } from "../components/common";
-import { frameColor } from "../lib/labels";
+import { frameColor, ATTR_CN, ATTR_COLOR, BAN_FORMAT_CN } from "../lib/labels";
 import {
   composeShareImage, exportShareImage, type ShareItem,
 } from "../canvas/ShareImageComposer";
@@ -32,9 +32,22 @@ export default function DeckBuilder() {
   const [toast, setToast] = useState("");
   const [busyImg, setBusyImg] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [format, setFormat] = useState<BanFormat>("ocg");
+  const fileRef = useRef<HTMLInputElement>(null);
   const imgCache = useRef<Map<number, HTMLImageElement>>(new Map());
 
   const remember = useCallback((c: CardSummary) => cache.current.set(c.id, c), []);
+
+  // 批量拉取卡数据进缓存（分享链接 / YDK 导入共用）
+  const loadIds = useCallback((ids: number[]) => {
+    const missing = ids.filter((id) => !cache.current.has(id));
+    if (!missing.length) { bump(); return Promise.resolve(); }
+    setLoadingShared(true);
+    return Promise.all(
+      missing.map((id) => getCard(id).then((c) => remember(c)).catch(() => {})),
+    ).finally(() => { setLoadingShared(false); bump(); });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remember]);
 
   // 从分享链接载入卡组
   useEffect(() => {
@@ -42,14 +55,30 @@ export default function DeckBuilder() {
     if (!code) return;
     const d = decodeDeck(code);
     setDeck(d);
-    const ids = uniqueIds(d);
-    if (!ids.length) return;
-    setLoadingShared(true);
-    Promise.all(
-      ids.map((id) => getCard(id).then((c) => remember(c)).catch(() => {})),
-    ).finally(() => { setLoadingShared(false); bump(); });
+    loadIds(uniqueIds(d));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // YDK 导入
+  const importYdk = (text: string) => {
+    const d = fromYdk(text);
+    if (!uniqueIds(d).length) { flash("未识别到有效卡密"); return; }
+    setDeck(d);
+    loadIds(uniqueIds(d));
+    flash(`已导入 ${d.main.length + d.extra.length + d.side.length} 张`);
+  };
+  const onPickFile = (e: ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    f.text().then(importYdk);
+    e.target.value = "";
+  };
+  const pasteYdk = async () => {
+    let text = "";
+    try { text = await navigator.clipboard.readText(); } catch { /* fallback */ }
+    if (!text) text = window.prompt("粘贴 YDK 内容（#main / #extra / !side 卡密列表）") || "";
+    if (text.trim()) importYdk(text);
+  };
 
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as { t?: number }).t); (flash as { t?: number }).t = window.setTimeout(() => setToast(""), 1800); };
 
@@ -85,7 +114,10 @@ export default function DeckBuilder() {
   };
   const clear = () => { if (confirm("清空当前卡组？")) setDeck(emptyDeck()); };
 
-  const v = useMemo(() => validate(deck), [deck]);
+  // 校验（含禁限，依赖缓存里的卡数据与所选赛制；cache 异步填充后由 bump 触发重算）
+  const v = validate(deck, { cards: cache.current, format });
+  const stats = deckStats(deck, cache.current);
+  const mainSize = deck.main.length || 40;
 
   // 同步分享链接到地址栏（轻量）
   useEffect(() => {
@@ -163,10 +195,20 @@ export default function DeckBuilder() {
             </span>
           </div>
           <div className="deck-actions">
+            <span className="deck-format">
+              {(["ocg", "tcg", "md"] as BanFormat[]).map((f) => (
+                <button key={f} className={`fmt-tab${format === f ? " on" : ""}`} onClick={() => setFormat(f)}>
+                  {BAN_FORMAT_CN[f]}
+                </button>
+              ))}
+            </span>
+            <button className="btn" onClick={() => fileRef.current?.click()}>导入 YDK</button>
+            <button className="btn" onClick={pasteYdk}>粘贴导入</button>
             <button className="btn" onClick={downloadYdk}>导出 YDK</button>
             <button className="btn" onClick={genImage} disabled={busyImg}>{busyImg ? "生成中…" : "生成卡组图"}</button>
             <button className="btn" onClick={copyShare}>复制分享链接</button>
             <button className="btn btn-ghost" onClick={clear}>清空</button>
+            <input ref={fileRef} type="file" accept=".ydk,text/plain" hidden onChange={onPickFile} />
           </div>
         </div>
 
@@ -180,6 +222,7 @@ export default function DeckBuilder() {
                 {results.map((c) => (
                   <button key={c.id} className="pool-card" onClick={() => add(c)} title={`加入 ${c.cn_name}`}>
                     <img src={c.thumb_url} alt={c.cn_name} loading="lazy" />
+                    {c.ban && <span className="pool-ban"><BanBadge ban={c.ban} format={format} dot /></span>}
                     <span className="pool-name">{c.cn_name}</span>
                   </button>
                 ))}
@@ -191,9 +234,19 @@ export default function DeckBuilder() {
           {/* 卡组三区 */}
           <section className="deck-zones">
             {loadingShared && <div className="muted" style={{ marginBottom: 8 }}>载入分享卡组中…</div>}
-            <DeckZone zone="main" deck={deck} cache={cache.current} onRemove={removeOne} />
-            <DeckZone zone="extra" deck={deck} cache={cache.current} onRemove={removeOne} />
-            <DeckZone zone="side" deck={deck} cache={cache.current} onRemove={removeOne} />
+            <DeckZone zone="main" deck={deck} cache={cache.current} onRemove={removeOne} format={format} />
+            <DeckZone zone="extra" deck={deck} cache={cache.current} onRemove={removeOne} format={format} />
+            <DeckZone zone="side" deck={deck} cache={cache.current} onRemove={removeOne} format={format} />
+
+            {!v.ok && v.errors.length > 0 && (
+              <div className="deck-errors">
+                {v.errors.map((e, i) => <div key={i} className="deck-err">✗ {e}</div>)}
+              </div>
+            )}
+
+            {deck.main.length > 0 && (
+              <DeckStatsPanel stats={stats} mainSize={mainSize} />
+            )}
           </section>
         </div>
       </div>
@@ -215,6 +268,63 @@ export default function DeckBuilder() {
   );
 }
 
+function DeckStatsPanel({ stats, mainSize }: { stats: ReturnType<typeof deckStats>; mainSize: number }) {
+  const maxCurve = Math.max(1, ...stats.levelCurve.map((c) => c.count));
+  const attrs = Object.entries(stats.byAttribute).sort((a, b) => b[1] - a[1]);
+  // 起手概率（先攻 5 张）：n-of 卡至少摸到 1 张
+  const hand = 5;
+  const probs = [3, 2, 1].map((n) => ({ n, p: hyperAtLeast(mainSize, n, hand, 1) }));
+  return (
+    <div className="deck-stats">
+      <div className="ds-block">
+        <h4>构成</h4>
+        <div className="ds-types">
+          <span className="ds-type mon">怪兽 {stats.byCardType.monster}</span>
+          <span className="ds-type spell">魔法 {stats.byCardType.spell}</span>
+          <span className="ds-type trap">陷阱 {stats.byCardType.trap}</span>
+        </div>
+        {attrs.length > 0 && (
+          <div className="ds-attrs">
+            {attrs.map(([a, n]) => (
+              <span key={a} className="ds-attr" style={{ borderColor: ATTR_COLOR[a] || "#888" }}>
+                {ATTR_CN[a] || a} {n}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {stats.levelCurve.length > 0 && (
+        <div className="ds-block">
+          <h4>等级/阶曲线</h4>
+          <div className="ds-curve">
+            {stats.levelCurve.map((c) => (
+              <div key={c.level} className="ds-bar-col" title={`${c.level} 级 · ${c.count} 张`}>
+                <div className="ds-bar" style={{ height: `${(c.count / maxCurve) * 100}%` }} />
+                <span className="ds-bar-n">{c.count}</span>
+                <span className="ds-bar-lv">{c.level}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="ds-block">
+        <h4>起手概率<span className="muted" style={{ fontWeight: 400 }}>（先攻 5 张 · 主卡组 {mainSize}）</span></h4>
+        <div className="ds-prob">
+          {probs.map(({ n, p }) => (
+            <div key={n} className="ds-prob-row">
+              <span className="ds-prob-k">{n} 张同名卡</span>
+              <span className="ds-prob-bar"><span style={{ width: `${p * 100}%` }} /></span>
+              <span className="ds-prob-v">{(p * 100).toFixed(1)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Count({ label, n, min, max }: { label: string; n: number; min?: number; max?: number }) {
   const bad = (min != null && n < min) || (max != null && n > max);
   return (
@@ -225,9 +335,9 @@ function Count({ label, n, min, max }: { label: string; n: number; min?: number;
 }
 
 function DeckZone({
-  zone, deck, cache, onRemove,
+  zone, deck, cache, onRemove, format,
 }: {
-  zone: Zone; deck: Deck; cache: Map<number, CardSummary>; onRemove: (z: Zone, id: number) => void;
+  zone: Zone; deck: Deck; cache: Map<number, CardSummary>; onRemove: (z: Zone, id: number) => void; format: BanFormat;
 }) {
   const ids = deck[zone];
   return (
@@ -249,6 +359,7 @@ function DeckZone({
             >
               {c ? <img src={c.thumb_url} alt={c.cn_name} loading="lazy" /> : <span className="zone-id">{id}</span>}
               {c?.attribute && <span className="zone-attr"><AttributeIcon attr={c.attribute} size={16} /></span>}
+              {c?.ban && <span className="zone-ban"><BanBadge ban={c.ban} format={format} dot /></span>}
             </button>
           );
         })}

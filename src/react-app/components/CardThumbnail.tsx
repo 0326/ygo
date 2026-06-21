@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import type { CardSummary } from "../../shared/types";
 import { frameColor } from "../lib/labels";
-import { AttributeIcon } from "./badges";
+import { AttributeIcon, BanBadge } from "./badges";
 
 export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; showAttr?: boolean }) {
   const [loaded, setLoaded] = useState(false);
@@ -30,6 +30,7 @@ export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; s
       {showAttr && card.attribute && (
         <span className="ct-badge"><AttributeIcon attr={card.attribute} size={22} /></span>
       )}
+      {card.ban && <span className="ct-ban"><BanBadge ban={card.ban} dot /></span>}
       <span className="ct-name">{card.cn_name}</span>
     </Link>
   );

@@ -1,5 +1,5 @@
 // 显示映射：英文枚举 -> 简中标签 / 配色。全站只读复用（M0.4）。
-import type { Attribute, Frame, CardType } from "../../shared/types";
+import type { Attribute, Frame, CardType, MonsterSubtype, BanStatus } from "../../shared/types";
 
 export const ATTR_CN: Record<string, string> = {
   LIGHT: "光", DARK: "暗", WATER: "水", FIRE: "炎",
@@ -56,6 +56,38 @@ export function raceCn(race: string | null): string {
 export const CARD_TYPE_CN: Record<CardType, string> = {
   monster: "怪兽", spell: "魔法", trap: "陷阱",
 };
+
+// 怪兽子类型 → 简中
+export const SUBTYPE_CN: Record<MonsterSubtype, string> = {
+  tuner: "调整", flip: "反转", gemini: "二重", spirit: "灵魂", union: "同盟", toon: "卡通",
+};
+export const SUBTYPE_OPTIONS: { value: MonsterSubtype; label: string }[] =
+  (["tuner", "flip", "gemini", "spirit", "union", "toon"] as MonsterSubtype[])
+    .map((v) => ({ value: v, label: SUBTYPE_CN[v] }));
+
+// 魔法/陷阱子类型（对应 race 字段的英文 key）
+export const ST_SUBTYPE_OPTIONS: { value: string; label: string }[] = [
+  { value: "Normal", label: "通常" },
+  { value: "Quick-Play", label: "速攻" },
+  { value: "Continuous", label: "永续" },
+  { value: "Equip", label: "装备" },
+  { value: "Field", label: "场地" },
+  { value: "Ritual", label: "仪式" },
+  { value: "Counter", label: "反击" },
+];
+
+// 禁限：状态 → 标签 / 配色
+export const BAN_CN: Record<BanStatus, string> = { 0: "禁止", 1: "限制", 2: "准限制" };
+export const BAN_LIMIT: Record<BanStatus, number> = { 0: 0, 1: 1, 2: 2 };
+export const BAN_COLOR: Record<BanStatus, string> = { 0: "#c0392b", 1: "#d97706", 2: "#b8a03a" };
+export const BAN_FORMAT_CN: Record<string, string> = { ocg: "OCG", tcg: "TCG", md: "MD" };
+
+// Master Duel 罕贵：代号 → 标签 / 配色
+export const MD_RARITY_CN: Record<string, string> = { N: "普卡", R: "银", SR: "金", UR: "彩" };
+export const MD_RARITY_COLOR: Record<string, string> = {
+  N: "#9aa0a6", R: "#9fb3c8", SR: "#d4af37", UR: "#c084fc",
+};
+export const MD_RARITY_OPTIONS = (["UR", "SR", "R", "N"] as const).map((v) => ({ value: v, label: `MD ${v}` }));
 
 // atk/def 显示：-1 表示 ?
 export function statStr(v: number | null): string {

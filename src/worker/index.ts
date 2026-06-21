@@ -49,6 +49,9 @@ app.get("/api/search", (c) =>
     return Q.search(c.env.ygo_db, {
       q: q.q, frame: q.frame, attribute: q.attribute, race: q.race,
       level: q.level, archetype: q.archetype, type: q.type, sort: q.sort,
+      level_min: q.level_min, level_max: q.level_max,
+      atk_min: q.atk_min, atk_max: q.atk_max, def_min: q.def_min, def_max: q.def_max,
+      link: q.link, scale: q.scale, subtype: q.subtype, md_rarity: q.md_rarity,
       page: intParam(q.page, 1),
       size: intParam(q.size, 24),
     });
@@ -80,9 +83,13 @@ app.get("/api/sets/:code", (c) =>
 // ---------- 站点统计 ----------
 app.get("/api/stats", (c) => cached(c, 3600, () => Q.stats(c.env.ygo_db)));
 
-// ---------- 卡图代理（M0.2，自托管而非热链） ----------
-app.get("/img/:key/s", (c) => proxyImage(c.req.raw, c.req.param("key"), true));
-app.get("/img/:key", (c) => proxyImage(c.req.raw, c.req.param("key"), false));
+// ---------- 卡图（M0.2：R2 自托管 + 懒回填） ----------
+app.get("/img/:key/s", (c) =>
+  proxyImage(c.req.raw, c.req.param("key"), true, c.env.IMG_BUCKET, c.executionCtx)
+);
+app.get("/img/:key", (c) =>
+  proxyImage(c.req.raw, c.req.param("key"), false, c.env.IMG_BUCKET, c.executionCtx)
+);
 
 app.get("/api/*", (c) => c.json({ error: "unknown endpoint" }, 404));
 

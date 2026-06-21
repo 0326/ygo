@@ -21,5 +21,11 @@
 			"database_id": "677b44dc-e5c7-4d8f-a180-999da41bf26b",
 			"remote": true
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "IMG_BUCKET",
+			"bucket_name": "ygo-cards"
+		}
 	]
 }
