@@ -119,3 +119,11 @@
 }
 .range-input:focus { outline: none; border-color: var(--gold); }
 .range-sep { color: var(--text-2); }
+
+/* ---- MD 罕贵徽标 (M6 P1.1) ---- */
+.md-rarity {
+  display: inline-flex; align-items: center; gap: 1px;
+  padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;
+  letter-spacing: .4px; white-space: nowrap;
+}
+.md-rarity .md-rarity-cn { font-weight: 600; opacity: .85; font-size: 10px; }

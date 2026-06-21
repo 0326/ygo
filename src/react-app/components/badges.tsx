@@ -1,5 +1,5 @@
-import { ATTR_CN, ATTR_COLOR, frameColor, BAN_CN, BAN_COLOR, BAN_FORMAT_CN, SUBTYPE_CN } from "../lib/labels";
-import type { LinkMarker, BanInfo, BanFormat, BanStatus, MonsterSubtype } from "../../shared/types";
+import { ATTR_CN, ATTR_COLOR, frameColor, BAN_CN, BAN_COLOR, BAN_FORMAT_CN, SUBTYPE_CN, MD_RARITY_CN, MD_RARITY_COLOR } from "../lib/labels";
+import type { LinkMarker, BanInfo, BanFormat, BanStatus, MonsterSubtype, MdRarity } from "../../shared/types";
 
 export function AttributeIcon({ attr, size = 26 }: { attr: string | null; size?: number }) {
   if (!attr) return null;
@@ -83,6 +83,16 @@ export function BanBadges({ ban }: { ban: BanInfo | null }) {
           {BAN_FORMAT_CN[f]}·{BAN_CN[ban[f] as BanStatus]}
         </span>
       ))}
+    </span>
+  );
+}
+
+// Master Duel 罕贵徽标
+export function MdRarityBadge({ rarity }: { rarity: MdRarity | null }) {
+  if (!rarity) return null;
+  return (
+    <span className="md-rarity" style={{ background: MD_RARITY_COLOR[rarity], color: rarity === "N" || rarity === "R" ? "#1a1a1a" : "#fff" }}>
+      MD {rarity}<span className="md-rarity-cn">·{MD_RARITY_CN[rarity]}</span>
     </span>
   );
 }

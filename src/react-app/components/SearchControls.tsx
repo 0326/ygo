@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FRAME_OPTIONS, ATTR_OPTIONS, RACE_CN, SUBTYPE_OPTIONS, ST_SUBTYPE_OPTIONS } from "../lib/labels";
+import { FRAME_OPTIONS, ATTR_OPTIONS, RACE_CN, SUBTYPE_OPTIONS, ST_SUBTYPE_OPTIONS, MD_RARITY_OPTIONS } from "../lib/labels";
 
 export function SearchBar({
   value, onChange, onSubmit, placeholder = "搜索卡名 / 效果（简中）…",
@@ -28,6 +28,7 @@ export interface Filters {
   attribute: Set<string>;
   race: Set<string>;       // 怪兽种族 或 魔陷子类型（按 type 切换语义，均映射到 race 参数）
   subtype: Set<string>;    // 怪兽能力子类型（调整/反转…）
+  mdRarity: Set<string>;   // Master Duel 罕贵
   type: string;
   levelMin: string;
   levelMax: string;
@@ -36,7 +37,7 @@ export interface Filters {
   sort: string;
 }
 export const emptyFilters = (): Filters => ({
-  frame: new Set(), attribute: new Set(), race: new Set(), subtype: new Set(),
+  frame: new Set(), attribute: new Set(), race: new Set(), subtype: new Set(), mdRarity: new Set(),
   type: "", levelMin: "", levelMax: "", atkMin: "", atkMax: "", sort: "",
 });
 
@@ -175,6 +176,16 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
       )}
 
       <div className="filter-row">
+        <span className="filter-label">MD 罕贵</span>
+        <div className="filter-toggles">
+          {MD_RARITY_OPTIONS.map((o) => (
+            <Toggle key={o.value} on={filters.mdRarity.has(o.value)} label={o.label}
+              onClick={() => onChange({ ...filters, mdRarity: toggle(filters.mdRarity, o.value) })} />
+          ))}
+        </div>
+      </div>
+
+      <div className="filter-row">
         <span className="filter-label">排序</span>
         <div className="filter-toggles">
           {[["", "默认"], ["atk", "攻击力"], ["level", "等级"]].map(([v, l]) => (
@@ -193,6 +204,7 @@ export function filtersToParams(f: Filters) {
     attribute: [...f.attribute].join(","),
     race: [...f.race].join(","),
     subtype: [...f.subtype].join(","),
+    md_rarity: [...f.mdRarity].join(","),
     type: f.type,
     level_min: f.levelMin,
     level_max: f.levelMax,

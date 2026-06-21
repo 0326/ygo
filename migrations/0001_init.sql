@@ -29,6 +29,7 @@ CREATE TABLE cards (
   effect_cn    TEXT,                         -- 怪兽效果/卡片效果（灵摆卡为怪兽侧）
   pendulum_effect_cn TEXT,                   -- 灵摆效果（仅灵摆卡）
   subtypes     TEXT,                         -- JSON 数组: ["tuner","flip",...]
+  md_rarity    TEXT,                         -- Master Duel 罕贵: N|R|SR|UR (来源 ygoprodeck)
   archetype_id INTEGER,
   alias_of     INTEGER,                     -- 异画/勘误归一到主卡
   updated_at   INTEGER

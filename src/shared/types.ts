@@ -20,6 +20,9 @@ export type BanInfo = Partial<Record<BanFormat, BanStatus>>;
 export type MonsterSubtype =
   | "tuner" | "flip" | "gemini" | "spirit" | "union" | "toon";
 
+// Master Duel 罕贵代号
+export type MdRarity = "N" | "R" | "SR" | "UR";
+
 export interface CardSummary {
   id: number;
   cn_name: string;
@@ -36,6 +39,7 @@ export interface CardSummary {
   race: string | null;
   subtypes: MonsterSubtype[] | null;  // 调整/反转/灵魂/同盟/二重/卡通
   ban: BanInfo | null;                // 各赛制禁限状态（无则不入表）
+  md_rarity: MdRarity | null;         // Master Duel 罕贵（来源 ygoprodeck）
   thumb_url: string;
 }
 

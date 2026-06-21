@@ -82,6 +82,13 @@ export const BAN_LIMIT: Record<BanStatus, number> = { 0: 0, 1: 1, 2: 2 };
 export const BAN_COLOR: Record<BanStatus, string> = { 0: "#c0392b", 1: "#d97706", 2: "#b8a03a" };
 export const BAN_FORMAT_CN: Record<string, string> = { ocg: "OCG", tcg: "TCG", md: "MD" };
 
+// Master Duel 罕贵：代号 → 标签 / 配色
+export const MD_RARITY_CN: Record<string, string> = { N: "普卡", R: "银", SR: "金", UR: "彩" };
+export const MD_RARITY_COLOR: Record<string, string> = {
+  N: "#9aa0a6", R: "#9fb3c8", SR: "#d4af37", UR: "#c084fc",
+};
+export const MD_RARITY_OPTIONS = (["UR", "SR", "R", "N"] as const).map((v) => ({ value: v, label: `MD ${v}` }));
+
 // atk/def 显示：-1 表示 ?
 export function statStr(v: number | null): string {
   if (v === null || v === undefined) return "—";

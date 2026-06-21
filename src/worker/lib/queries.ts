@@ -2,7 +2,7 @@
 import type {
   CardSummary, CardDetail, Artwork, Print, ArchetypeSummary,
   SearchResponse, SetSummary, Frame, Attribute, CardType, LinkMarker,
-  MonsterSubtype, BanInfo, BanStatus,
+  MonsterSubtype, BanInfo, BanStatus, MdRarity,
 } from "../../shared/types";
 import { thumbUrl, fullUrl } from "./images";
 
@@ -12,13 +12,13 @@ interface CardRow {
   level: number | null; link_val: number | null; link_markers: string | null;
   scale: number | null; atk: number | null; def: number | null;
   effect_cn?: string; pendulum_effect_cn?: string | null;
-  subtypes?: string | null; archetype_id?: number | null;
+  subtypes?: string | null; md_rarity?: string | null; archetype_id?: number | null;
   default_key?: string | null;
   ban_ocg?: number | null; ban_tcg?: number | null; ban_md?: number | null;
 }
 
 const COLS = `c.id,c.cn_name,c.en_name,c.card_type,c.frame,c.attribute,c.race,
-  c.level,c.link_val,c.link_markers,c.scale,c.atk,c.def,c.subtypes,c.archetype_id,
+  c.level,c.link_val,c.link_markers,c.scale,c.atk,c.def,c.subtypes,c.md_rarity,c.archetype_id,
   (SELECT image_key FROM card_artworks a WHERE a.card_id=c.id ORDER BY a.is_default DESC, a.id LIMIT 1) AS default_key,
   (SELECT status FROM banlist b WHERE b.card_id=c.id AND b.format='ocg') AS ban_ocg,
   (SELECT status FROM banlist b WHERE b.card_id=c.id AND b.format='tcg') AS ban_tcg,
@@ -50,6 +50,7 @@ function toSummary(r: CardRow): CardSummary {
     race: r.race ?? null,
     subtypes: r.subtypes ? (JSON.parse(r.subtypes) as MonsterSubtype[]) : null,
     ban: toBan(r),
+    md_rarity: (r.md_rarity as MdRarity) ?? null,
     thumb_url: thumbUrl(key),
   };
 }
@@ -61,7 +62,7 @@ export async function search(
     level?: string; archetype?: string; type?: string;
     level_min?: string; level_max?: string;
     atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
-    link?: string; scale?: string; subtype?: string;
+    link?: string; scale?: string; subtype?: string; md_rarity?: string;
     page: number; size: number; sort?: string;
   }
 ): Promise<SearchResponse> {
@@ -99,6 +100,7 @@ export async function search(
   inList("attribute", params.attribute);
   inList("race", params.race);
   inList("card_type", params.type);
+  inList("md_rarity", params.md_rarity);
   if (params.level) {
     where.push("c.level = ?");
     binds.push(parseInt(params.level, 10));

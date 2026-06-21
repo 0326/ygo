@@ -8,7 +8,7 @@
 见 [`migrations/0001_init.sql`](../migrations/0001_init.sql)。要点：
 
 - `cards`：卡密(passcode)为主键；`frame` 去掉了 `_pendulum` 后缀，灵摆与否由 `scale IS NOT NULL` 判定。
-  - M6 新增 `pendulum_effect_cn`（灵摆效果，与 `effect_cn` 的怪兽效果分开）、`subtypes`（JSON 数组，怪兽能力子类型 `tuner/flip/gemini/spirit/union/toon`）。
+  - M6 新增 `pendulum_effect_cn`（灵摆效果，与 `effect_cn` 的怪兽效果分开）、`subtypes`（JSON 数组，怪兽能力子类型 `tuner/flip/gemini/spirit/union/toon`）、`md_rarity`（Master Duel 罕贵 `N/R/SR/UR`，来源 ygoprodeck `misc_info.md_rarity`）。
 - `card_artworks`：一卡多图，`is_default=1` 为默认画；其余为异画（`variant_name`）。
 - `archetypes` / `sets` / `card_prints`：系列、卡包、收录/罕贵。
 - `banlist`（M6 新增）：禁限卡表，`(card_id, format)` 主键，`format ∈ {ocg,tcg,md}`，`status` 0=禁/1=限/2=准限。数据源 YGOPRODeck `banlist_info`（含 ocg/tcg；md 暂无开源数据源）。
@@ -24,7 +24,7 @@ TypeScript 形态见 [`src/shared/types.ts`](../src/shared/types.ts)（前后端
 | 端点 | 返回 | 缓存 |
 |---|---|---|
 | `GET /api/search?q=&frame=&attribute=&race=&level=&archetype=&type=&sort=&page=&size=` | `SearchResponse` | 300s |
-| ↳ M6 新增筛选参数 `level_min/level_max/atk_min/atk_max/def_min/def_max/link/scale/subtype`（区间为闭区间；`subtype` 逗号分隔取交集；魔陷子类型复用 `race`） | | |
+| ↳ M6 新增筛选参数 `level_min/level_max/atk_min/atk_max/def_min/def_max/link/scale/subtype/md_rarity`（区间为闭区间；`subtype` 逗号分隔取交集；魔陷子类型复用 `race`；`md_rarity ∈ {N,R,SR,UR}`） | | |
 | `GET /api/cards/:id` | `CardDetail` | 3600s |
 | `GET /api/cards/:id/artworks` | `Artwork[]` | 3600s |
 | `GET /api/archetypes?min=` | `ArchetypeSummary[]` | 3600s |

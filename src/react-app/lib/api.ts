@@ -20,7 +20,7 @@ export interface SearchParams {
   level?: string; archetype?: string; type?: string;
   level_min?: string; level_max?: string;
   atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
-  link?: string; scale?: string; subtype?: string;
+  link?: string; scale?: string; subtype?: string; md_rarity?: string;
   sort?: string; page?: number; size?: number;
 }
 

@@ -60,6 +60,13 @@ function splitPendulum(desc, isPend) {
   return { effect: stripScale(desc), pend: null };
 }
 
+// Master Duel 罕贵（P1.1）：ygoprodeck misc_info.md_rarity → MD 代号
+const MD_RARITY_CODE = { "Common": "N", "Rare": "R", "Super Rare": "SR", "Ultra Rare": "UR" };
+const mdRarityMap = (() => {
+  try { return JSON.parse(readFileSync(`${ROOT}data/md-rarity.json`, "utf8")); }
+  catch { return {}; }
+})();
+
 // 系列中文名词典（P0.2）：高置信度人工映射
 const archCnMap = (() => {
   try {
@@ -117,6 +124,7 @@ for (const c of ygo) {
     effect_cn: effect,
     pendulum_effect_cn: pend,
     subtypes: ct === "monster" ? subtypesOf(c) : null,
+    md_rarity: MD_RARITY_CODE[mdRarityMap[c.id]] || null,
     archetype_id: archId,
     alias_of: null,
     updated_at: Math.floor(Date.parse(c.misc_info?.[0]?.tcg_date || 0) / 1000) || 0,
@@ -230,9 +238,9 @@ function batchInsert(table, cols, rows, rowToVals) {
 
 batchInsert(
   "cards",
-  ["id","cn_name","jp_name","en_name","card_type","frame","attribute","race","level","link_val","link_markers","scale","atk","def","effect_cn","pendulum_effect_cn","subtypes","archetype_id","alias_of","updated_at"],
+  ["id","cn_name","jp_name","en_name","card_type","frame","attribute","race","level","link_val","link_markers","scale","atk","def","effect_cn","pendulum_effect_cn","subtypes","md_rarity","archetype_id","alias_of","updated_at"],
   cards,
-  (r) => [r.id,r.cn_name,r.jp_name,r.en_name,r.card_type,r.frame,r.attribute,r.race,r.level,r.link_val,r.link_markers,r.scale,r.atk,r.def,r.effect_cn,r.pendulum_effect_cn,r.subtypes,r.archetype_id,r.alias_of,r.updated_at]
+  (r) => [r.id,r.cn_name,r.jp_name,r.en_name,r.card_type,r.frame,r.attribute,r.race,r.level,r.link_val,r.link_markers,r.scale,r.atk,r.def,r.effect_cn,r.pendulum_effect_cn,r.subtypes,r.md_rarity,r.archetype_id,r.alias_of,r.updated_at]
 );
 batchInsert(
   "card_artworks",

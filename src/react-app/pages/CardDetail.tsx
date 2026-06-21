@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getCard } from "../lib/api";
 import type { CardDetail as CardDetailT } from "../../shared/types";
-import { AttributeIcon, LevelStars, LinkMarkers, FrameBadge, BanBadges, SubtypeChips } from "../components/badges";
+import { AttributeIcon, LevelStars, LinkMarkers, FrameBadge, BanBadges, SubtypeChips, MdRarityBadge } from "../components/badges";
 import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, ErrorBox } from "../components/common";
 import {
@@ -87,6 +87,7 @@ export default function CardDetail() {
             {isMonster && <SubtypeChips subtypes={card.subtypes} />}
             {card.archetype && <Link to={`/archetypes/${card.archetype.id}`} className="chip" style={{ color: "var(--gold-soft)" }}>◈ {card.archetype.cn_name}</Link>}
             <BanBadges ban={card.ban} />
+            <MdRarityBadge rarity={card.md_rarity} />
           </div>
 
           {isMonster && (

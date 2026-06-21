@@ -51,7 +51,7 @@ app.get("/api/search", (c) =>
       level: q.level, archetype: q.archetype, type: q.type, sort: q.sort,
       level_min: q.level_min, level_max: q.level_max,
       atk_min: q.atk_min, atk_max: q.atk_max, def_min: q.def_min, def_max: q.def_max,
-      link: q.link, scale: q.scale, subtype: q.subtype,
+      link: q.link, scale: q.scale, subtype: q.subtype, md_rarity: q.md_rarity,
       page: intParam(q.page, 1),
       size: intParam(q.size, 24),
     });
