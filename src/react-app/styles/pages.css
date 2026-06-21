@@ -121,3 +121,10 @@
 /* lightbox */
 .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.9); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; cursor: zoom-out; }
 .lightbox img { max-width: 92vw; max-height: 92vh; border-radius: 10px; box-shadow: var(--shadow-2); }
+
+/* ---- 灵摆效果分框 (M6) ---- */
+.effect-text.pend-effect {
+  background: linear-gradient(rgba(58,161,124,.10), rgba(58,161,124,.04));
+  border-left: 3px solid var(--gold-soft);
+  padding: 12px 14px; border-radius: var(--radius-sm);
+}

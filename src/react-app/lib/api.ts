@@ -18,6 +18,9 @@ async function get<T>(path: string): Promise<T> {
 export interface SearchParams {
   q?: string; frame?: string; attribute?: string; race?: string;
   level?: string; archetype?: string; type?: string;
+  level_min?: string; level_max?: string;
+  atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
+  link?: string; scale?: string; subtype?: string;
   sort?: string; page?: number; size?: number;
 }
 

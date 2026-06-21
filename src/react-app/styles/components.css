@@ -96,3 +96,26 @@
 
 .spinner { width: 34px; height: 34px; border: 3px solid var(--line-strong); border-top-color: var(--gold); border-radius: 50%; animation: spin .8s linear infinite; margin: 60px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- 禁限角标 (M6) ---- */
+.ban-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(0,0,0,.55); }
+.ban-badge {
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 2px 7px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  color: #fff; letter-spacing: .3px; white-space: nowrap;
+}
+.ban-badges { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.card-thumb .ct-ban { position: absolute; top: 6px; right: 6px; z-index: 2; }
+
+/* ---- 子类型 chip (M6) ---- */
+.subtype-chip { background: rgba(110,168,254,.14); border-color: rgba(110,168,254,.4); color: #aecbff; }
+
+/* ---- 区间筛选输入 (M6) ---- */
+.range-row { align-items: center; gap: 8px; }
+.range-input {
+  width: 84px; padding: 6px 9px; font-size: 13px;
+  background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm);
+  color: var(--text-0);
+}
+.range-input:focus { outline: none; border-color: var(--gold); }
+.range-sep { color: var(--text-2); }

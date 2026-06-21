@@ -2,6 +2,7 @@
 import type {
   CardSummary, CardDetail, Artwork, Print, ArchetypeSummary,
   SearchResponse, SetSummary, Frame, Attribute, CardType, LinkMarker,
+  MonsterSubtype, BanInfo, BanStatus,
 } from "../../shared/types";
 import { thumbUrl, fullUrl } from "./images";
 
@@ -10,13 +11,26 @@ interface CardRow {
   frame: string; attribute: string | null; race: string | null;
   level: number | null; link_val: number | null; link_markers: string | null;
   scale: number | null; atk: number | null; def: number | null;
-  effect_cn?: string; archetype_id?: number | null;
+  effect_cn?: string; pendulum_effect_cn?: string | null;
+  subtypes?: string | null; archetype_id?: number | null;
   default_key?: string | null;
+  ban_ocg?: number | null; ban_tcg?: number | null; ban_md?: number | null;
 }
 
 const COLS = `c.id,c.cn_name,c.en_name,c.card_type,c.frame,c.attribute,c.race,
-  c.level,c.link_val,c.link_markers,c.scale,c.atk,c.def,c.archetype_id,
-  (SELECT image_key FROM card_artworks a WHERE a.card_id=c.id ORDER BY a.is_default DESC, a.id LIMIT 1) AS default_key`;
+  c.level,c.link_val,c.link_markers,c.scale,c.atk,c.def,c.subtypes,c.archetype_id,
+  (SELECT image_key FROM card_artworks a WHERE a.card_id=c.id ORDER BY a.is_default DESC, a.id LIMIT 1) AS default_key,
+  (SELECT status FROM banlist b WHERE b.card_id=c.id AND b.format='ocg') AS ban_ocg,
+  (SELECT status FROM banlist b WHERE b.card_id=c.id AND b.format='tcg') AS ban_tcg,
+  (SELECT status FROM banlist b WHERE b.card_id=c.id AND b.format='md') AS ban_md`;
+
+function toBan(r: CardRow): BanInfo | null {
+  const ban: BanInfo = {};
+  if (r.ban_ocg != null) ban.ocg = r.ban_ocg as BanStatus;
+  if (r.ban_tcg != null) ban.tcg = r.ban_tcg as BanStatus;
+  if (r.ban_md != null) ban.md = r.ban_md as BanStatus;
+  return Object.keys(ban).length ? ban : null;
+}
 
 function toSummary(r: CardRow): CardSummary {
   const key = r.default_key || String(r.id);
@@ -34,6 +48,8 @@ function toSummary(r: CardRow): CardSummary {
     atk: r.atk ?? null,
     def: r.def ?? null,
     race: r.race ?? null,
+    subtypes: r.subtypes ? (JSON.parse(r.subtypes) as MonsterSubtype[]) : null,
+    ban: toBan(r),
     thumb_url: thumbUrl(key),
   };
 }
@@ -43,6 +59,9 @@ export async function search(
   params: {
     q?: string; frame?: string; attribute?: string; race?: string;
     level?: string; archetype?: string; type?: string;
+    level_min?: string; level_max?: string;
+    atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
+    link?: string; scale?: string; subtype?: string;
     page: number; size: number; sort?: string;
   }
 ): Promise<SearchResponse> {
@@ -51,13 +70,20 @@ export async function search(
   let from = "cards c";
 
   if (params.q && params.q.trim()) {
-    // FTS5 trigram 需 >=3 字符；不足则退化为 LIKE
     const q = params.q.trim();
+    const esc = q.replace(/"/g, '""');
     if (q.length >= 3) {
+      // FTS5 trigram：≥3 字
       from = "cards_fts f JOIN cards c ON c.id=f.rowid";
       where.push("cards_fts MATCH ?");
-      binds.push(`"${q.replace(/"/g, '""')}"`);
+      binds.push(`"${esc}"`);
+    } else if (q.length === 2 && /[一-鿿]/.test(q)) {
+      // 双字 CJK：走 bigram 索引（trigram 无法匹配 2 字）
+      from = "cards_bigram b JOIN cards c ON c.id=b.rowid";
+      where.push("cards_bigram MATCH ?");
+      binds.push(`"${esc}"`);
     } else {
+      // 单字或拉丁短词：LIKE 兜底
       where.push("(c.cn_name LIKE ? OR c.en_name LIKE ?)");
       binds.push(`%${q}%`, `%${q}%`);
     }
@@ -76,6 +102,23 @@ export async function search(
   if (params.level) {
     where.push("c.level = ?");
     binds.push(parseInt(params.level, 10));
+  }
+  // 区间筛选（等级/攻/守）
+  const range = (col: string, min?: string, max?: string) => {
+    if (min) { where.push(`c.${col} >= ?`); binds.push(parseInt(min, 10)); }
+    if (max) { where.push(`c.${col} <= ?`); binds.push(parseInt(max, 10)); }
+  };
+  range("level", params.level_min, params.level_max);
+  range("atk", params.atk_min, params.atk_max);
+  range("def", params.def_min, params.def_max);
+  if (params.link) { where.push("c.link_val = ?"); binds.push(parseInt(params.link, 10)); }
+  if (params.scale) { where.push("c.scale = ?"); binds.push(parseInt(params.scale, 10)); }
+  // 怪兽子类型（JSON 数组内匹配，逗号分隔取交集）
+  if (params.subtype) {
+    for (const s of params.subtype.split(",").map((x) => x.trim()).filter(Boolean)) {
+      where.push("c.subtypes LIKE ?");
+      binds.push(`%"${s}"%`);
+    }
   }
   if (params.archetype) {
     where.push("c.archetype_id = ?");
@@ -108,7 +151,7 @@ export async function search(
 
 export async function cardDetail(db: D1Database, id: number): Promise<CardDetail | null> {
   const row = await db
-    .prepare(`SELECT ${COLS}, c.effect_cn FROM cards c WHERE c.id = ?`)
+    .prepare(`SELECT ${COLS}, c.effect_cn, c.pendulum_effect_cn FROM cards c WHERE c.id = ?`)
     .bind(id)
     .first<CardRow>();
   if (!row) return null;
@@ -117,7 +160,7 @@ export async function cardDetail(db: D1Database, id: number): Promise<CardDetail
   const prints = await getPrints(db, id);
 
   let archetype = null;
-  let related: CardSummary[] = [];
+  const relMap = new Map<number, CardSummary>();
   if (row.archetype_id) {
     const a = await db
       .prepare("SELECT id,cn_name,en_name FROM archetypes WHERE id=?")
@@ -128,16 +171,25 @@ export async function cardDetail(db: D1Database, id: number): Promise<CardDetail
       .prepare(`SELECT ${COLS} FROM cards c WHERE c.archetype_id=? AND c.id<>? ORDER BY c.id LIMIT 12`)
       .bind(row.archetype_id, id)
       .all<CardRow>();
-    related = (rel.results || []).map(toSummary);
+    for (const r of rel.results || []) relMap.set(r.id, toSummary(r));
+  }
+  // 实战联动：效果文本中点名本卡名的卡（"能检索/特召此卡的卡"）
+  if (row.cn_name && row.cn_name.length >= 2) {
+    const mentions = await db
+      .prepare(`SELECT ${COLS} FROM cards c WHERE c.id<>? AND c.effect_cn LIKE ? ORDER BY c.id LIMIT 12`)
+      .bind(id, `%${row.cn_name}%`)
+      .all<CardRow>();
+    for (const r of mentions.results || []) if (!relMap.has(r.id)) relMap.set(r.id, toSummary(r));
   }
 
   return {
     ...toSummary(row),
     effect_cn: row.effect_cn || "",
+    pendulum_effect_cn: row.pendulum_effect_cn ?? null,
     artworks,
     prints,
     archetype,
-    related,
+    related: [...relMap.values()].slice(0, 18),
   };
 }
 

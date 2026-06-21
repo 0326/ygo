@@ -1,5 +1,5 @@
-import { ATTR_CN, ATTR_COLOR, frameColor } from "../lib/labels";
-import type { LinkMarker } from "../../shared/types";
+import { ATTR_CN, ATTR_COLOR, frameColor, BAN_CN, BAN_COLOR, BAN_FORMAT_CN, SUBTYPE_CN } from "../lib/labels";
+import type { LinkMarker, BanInfo, BanFormat, BanStatus, MonsterSubtype } from "../../shared/types";
 
 export function AttributeIcon({ attr, size = 26 }: { attr: string | null; size?: number }) {
   if (!attr) return null;
@@ -53,6 +53,43 @@ export function LinkMarkers({ markers }: { markers: LinkMarker[] }) {
       })}
     </span>
   );
+}
+
+// 禁限角标。优先按指定赛制显示；缩略图上用单色小圆点。
+export function BanBadge({ ban, format = "ocg", dot = false }: { ban: BanInfo | null; format?: BanFormat; dot?: boolean }) {
+  if (!ban) return null;
+  const st = ban[format] ?? ban.ocg ?? ban.tcg ?? ban.md;
+  if (st == null) return null;
+  const color = BAN_COLOR[st as BanStatus];
+  if (dot) {
+    return <span className="ban-dot" style={{ background: color }} title={`${BAN_FORMAT_CN[format]} ${BAN_CN[st as BanStatus]}`} />;
+  }
+  return (
+    <span className="ban-badge" style={{ background: color }}>
+      {BAN_FORMAT_CN[format]}·{BAN_CN[st as BanStatus]}
+    </span>
+  );
+}
+
+// 禁限：所有赛制一起展示（详情页用）
+export function BanBadges({ ban }: { ban: BanInfo | null }) {
+  if (!ban) return null;
+  const formats = (["ocg", "tcg", "md"] as BanFormat[]).filter((f) => ban[f] != null);
+  if (!formats.length) return null;
+  return (
+    <span className="ban-badges">
+      {formats.map((f) => (
+        <span key={f} className="ban-badge" style={{ background: BAN_COLOR[ban[f] as BanStatus] }}>
+          {BAN_FORMAT_CN[f]}·{BAN_CN[ban[f] as BanStatus]}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+export function SubtypeChips({ subtypes }: { subtypes: MonsterSubtype[] | null }) {
+  if (!subtypes || !subtypes.length) return null;
+  return <>{subtypes.map((s) => <span key={s} className="chip subtype-chip">{SUBTYPE_CN[s]}</span>)}</>;
 }
 
 export function FrameBadge({ frame, label, pendulum = false }: { frame: string; label: string; pendulum?: boolean }) {
