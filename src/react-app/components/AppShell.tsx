@@ -1,4 +1,5 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import type { ReactNode } from "react";
 
 const links = [
@@ -25,6 +26,23 @@ const ICONS: Record<string, string> = {
 };
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
+
+  // 全局快捷键：按 "/" 聚焦当前页搜索框（无搜索框则跳查卡页）
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+      e.preventDefault();
+      const input = document.querySelector<HTMLInputElement>(".searchbar input");
+      if (input) input.focus();
+      else navigate("/search");
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [navigate]);
+
   return (
     <>
       <header className="topnav">
