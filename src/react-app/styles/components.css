@@ -174,3 +174,64 @@
   letter-spacing: .4px; white-space: nowrap;
 }
 .md-rarity .md-rarity-cn { font-weight: 600; opacity: .85; font-size: 10px; }
+
+/* ---- 账号入口 (M10) ---- */
+.auth-entry { display: inline-flex; align-items: center; gap: 7px; flex: none; padding: 5px 12px; font-size: 13px; }
+.auth-avatar {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--gold);
+  color: #2a2208; font-weight: 800; font-size: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.auth-name { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 720px) {
+  .auth-entry { position: fixed; top: 8px; right: 108px; z-index: 70; background: var(--bg-1); }
+  .auth-name { display: none; }
+}
+
+/* ---- 登录页 (M10) ---- */
+.login-card {
+  max-width: 420px; margin: 40px auto; background: var(--bg-1);
+  border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 34px 32px;
+}
+.login-tabs { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 20px; }
+.login-label { display: block; font-size: 13px; color: var(--text-2); margin: 12px 0 6px; }
+.login-input {
+  width: 100%; padding: 10px 14px; background: var(--bg-2);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+  color: var(--text-0); font-size: 15px; outline: none;
+}
+.login-input:focus { border-color: var(--gold); }
+.login-err {
+  margin-top: 14px; color: #ff9a8a; font-size: 13px;
+  background: rgba(192,57,43,.10); border-left: 3px solid #c0392b;
+  padding: 8px 12px; border-radius: var(--radius-sm);
+}
+.login-submit { width: 100%; margin-top: 20px; padding: 11px; }
+
+/* ---- 用户中心 / 管理后台 (M10) ---- */
+.me-tabs { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 22px; }
+.me-wp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.me-wp { position: relative; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); aspect-ratio: 16/10; background: var(--bg-2); }
+.me-wp img { width: 100%; height: 100%; object-fit: cover; }
+.me-wp-meta { position: absolute; right: 6px; bottom: 6px; font-size: 11px; color: #fff; background: rgba(0,0,0,.6); padding: 1px 7px; border-radius: 999px; }
+.me-decks { display: flex; flex-direction: column; gap: 10px; max-width: 720px; }
+.me-deck {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 16px;
+}
+.me-deck-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.me-deck-info b { color: var(--text-0); }
+.me-deck-info .muted { font-size: 12px; }
+
+.admin-table td, .admin-table th { white-space: nowrap; }
+.admin-form { background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin-bottom: 18px; }
+.admin-form h3 { margin-bottom: 12px; color: var(--gold-soft); font-size: 15px; }
+.admin-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.admin-form-grid label { display: flex; flex-direction: column; gap: 5px; font-size: 13px; color: var(--text-2); }
+.admin-wp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+.admin-wp { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-1); }
+.admin-wp img { width: 100%; aspect-ratio: 16/10; object-fit: cover; display: block; }
+.admin-wp-meta { padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.admin-wp-meta b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.admin-wp-meta .muted { font-size: 11px; }
+.fav-btn.on { border-color: var(--gold); color: var(--gold-soft); }

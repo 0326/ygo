@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./lib/i18n";
+import { UserProvider } from "./lib/user";
 import { AppShell } from "./components/AppShell";
 import { Spinner } from "./components/common";
 import Home from "./pages/Home";
@@ -16,11 +17,16 @@ const ShareImage = lazy(() => import("./pages/ShareImage"));
 const DeckBuilder = lazy(() => import("./pages/DeckBuilder"));
 // M9 壁纸图库按需加载
 const Wallpapers = lazy(() => import("./pages/Wallpapers"));
+// M10 账号体系按需加载
+const Login = lazy(() => import("./pages/Login"));
+const Me = lazy(() => import("./pages/Me"));
+const Admin = lazy(() => import("./pages/Admin"));
 
 export default function App() {
   return (
     <BrowserRouter>
       <LanguageProvider>
+      <UserProvider>
       <AppShell>
         <Suspense fallback={<div className="container page"><Spinner /></div>}>
           <Routes>
@@ -35,10 +41,14 @@ export default function App() {
             <Route path="/share" element={<ShareImage />} />
             <Route path="/deck" element={<DeckBuilder />} />
             <Route path="/wallpapers" element={<Wallpapers />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/me" element={<Me />} />
+            <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
       </AppShell>
+      </UserProvider>
       </LanguageProvider>
     </BrowserRouter>
   );

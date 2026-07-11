@@ -12,6 +12,9 @@ import { AttributeIcon, BanBadge } from "../components/badges";
 import { Spinner } from "../components/common";
 import { frameColor, ATTR_COLOR, BAN_FORMAT_CN, BAN_LIMIT } from "../lib/labels";
 import { useLang, cardName, attrName } from "../lib/i18n";
+import { useUser } from "../lib/user";
+import { saveMyDeck } from "../lib/api";
+import { useNavigate } from "react-router-dom";
 import {
   composeShareImage, exportShareImage, type ShareItem,
 } from "../canvas/ShareImageComposer";
@@ -21,7 +24,15 @@ const ZONE_KEY = { main: "deck.main", extra: "deck.extra", side: "deck.side" } a
 
 export default function DeckBuilder() {
   const { lang, t } = useLang();
+  const { me } = useUser();
+  const nav = useNavigate();
   const [sp, setSp] = useSearchParams();
+  // 从用户中心打开时带上 save=<id>&name=，保存时覆盖该卡组
+  const [savedId, setSavedId] = useState<number | undefined>(() => {
+    const v = parseInt(sp.get("save") || "", 10);
+    return Number.isFinite(v) && v > 0 ? v : undefined;
+  });
+  const [deckName, setDeckName] = useState(() => sp.get("name") || "");
   const [deck, setDeck] = useState<Deck>(emptyDeck);
   const cache = useRef<Map<number, CardSummary>>(new Map());
   const [, forceTick] = useState(0);
@@ -146,6 +157,21 @@ export default function DeckBuilder() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deck]);
 
+  // 保存卡组到账号（M10）
+  const saveDeckToAccount = async () => {
+    if (!me) { nav(`/login?next=${encodeURIComponent("/deck" + location.search)}`); return; }
+    const name = window.prompt(t("deck.saveName"), deckName || "我的卡组");
+    if (!name || !name.trim()) return;
+    try {
+      const r = await saveMyDeck({ id: savedId, name: name.trim(), deck_code: encodeDeck(deck), format });
+      setSavedId(r.id);
+      setDeckName(name.trim());
+      flash(t("deck.saved"));
+    } catch (e) {
+      flash(String((e as Error).message || e));
+    }
+  };
+
   const copyShare = async () => {
     const url = `${location.origin}/deck?d=${encodeDeck(deck)}`;
     try { await navigator.clipboard.writeText(url); flash("分享链接已复制"); }
@@ -220,6 +246,7 @@ export default function DeckBuilder() {
                 </button>
               ))}
             </span>
+            <button className="btn" onClick={() => void saveDeckToAccount()}>{t("deck.save")}</button>
             <button className="btn" onClick={() => fileRef.current?.click()}>{t("deck.importYdk")}</button>
             <button className="btn" onClick={pasteYdk}>{t("deck.pasteImport")}</button>
             <button className="btn" onClick={downloadYdk}>{t("deck.exportYdk")}</button>

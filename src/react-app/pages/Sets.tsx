@@ -4,6 +4,7 @@ import { listSets, getSet } from "../lib/api";
 import type { SetSummary, CardSummary } from "../../shared/types";
 import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, ErrorBox } from "../components/common";
+import { FavButton } from "../components/badges";
 import { useLang } from "../lib/i18n";
 
 export function Sets() {
@@ -69,6 +70,7 @@ export function SetDetail() {
           <h1>{data.set.en_name}</h1>
           <div className="sub">{data.set.code} · {data.cards.length} {t("common.cards")}{data.set.release_date ? ` · ${new Date(data.set.release_date * 1000).toLocaleDateString()}` : ""}</div>
         </div>
+        <FavButton kind="set" refId={data.set.code} />
       </div>
       <CardGrid cards={data.cards} showAttr />
     </div>

@@ -332,3 +332,15 @@ export async function stats(db: D1Database) {
     .first<{ cards: number; archetypes: number; artworks: number; sets: number }>();
   return r;
 }
+
+// 按卡密批量取卡片摘要（M10 用户收藏页用），保持传入顺序
+export async function cardsByIds(db: D1Database, ids: number[]): Promise<CardSummary[]> {
+  const chunk = ids.filter((n) => Number.isFinite(n) && n > 0).slice(0, 200);
+  if (!chunk.length) return [];
+  const { results } = await db
+    .prepare(`SELECT ${COLS} FROM cards c WHERE c.id IN (${chunk.map(() => "?").join(",")})`)
+    .bind(...chunk)
+    .all<CardRow>();
+  const map = new Map((results || []).map((r) => [r.id, toSummary(r)]));
+  return chunk.map((id) => map.get(id)).filter((x): x is CardSummary => !!x);
+}

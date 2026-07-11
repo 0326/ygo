@@ -2,6 +2,7 @@ import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { useLang, LANGS } from "../lib/i18n";
+import { useUser } from "../lib/user";
 
 const links = [
   { to: "/search", key: "nav.search" },
@@ -77,6 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             ))}
           </span>
+          <AuthEntry />
         </div>
       </header>
 
@@ -99,5 +101,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </nav>
     </>
+  );
+}
+
+// M10：顶栏账号入口 —— 未登录显示登录按钮，已登录显示用户名（点击进用户中心）
+function AuthEntry() {
+  const { me } = useUser();
+  const { t } = useLang();
+  if (me === undefined) return <span className="auth-entry" />;
+  if (!me) return <Link className="auth-entry btn" to="/login">{t("auth.login")}</Link>;
+  return (
+    <Link className="auth-entry btn" to="/me" title={t("me.title")}>
+      <span className="auth-avatar">{me.username.slice(0, 1).toUpperCase()}</span>
+      <span className="auth-name">{me.username}</span>
+    </Link>
   );
 }

@@ -121,3 +121,28 @@ export function FrameBadge({ frame, label, pendulum = false }: { frame: string; 
     </span>
   );
 }
+
+// M10：通用收藏按钮（未登录点击跳转登录页）
+import type { FavKind } from "../../shared/types";
+import { useUser } from "../lib/user";
+import { useLang as useLangFav } from "../lib/i18n";
+import { useNavigate } from "react-router-dom";
+
+export function FavButton({ kind, refId }: { kind: FavKind; refId: string | number }) {
+  const { me, isFav, toggleFav } = useUser();
+  const { t } = useLangFav();
+  const nav = useNavigate();
+  const on = isFav(kind, refId);
+  return (
+    <button
+      className={`btn fav-btn${on ? " on" : ""}`}
+      title={me ? undefined : t("fav.loginFirst")}
+      onClick={() => {
+        if (!me) { nav(`/login?next=${encodeURIComponent(location.pathname + location.search)}`); return; }
+        void toggleFav(kind, refId).catch(() => {});
+      }}
+    >
+      {on ? t("fav.added") : t("fav.add")}
+    </button>
+  );
+}

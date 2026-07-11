@@ -142,3 +142,32 @@ export interface SetSummary {
   card_count: number;
   cover_thumb_url?: string | null;
 }
+
+// ---------------- M10 账号体系 ----------------
+export interface AuthUser {
+  id: number;
+  username: string;
+  role: "user" | "admin";
+  created_at: number;
+}
+
+export type FavKind = "card" | "set" | "wallpaper";
+
+export interface UserDeck {
+  id: number;
+  name: string;
+  deck_code: string;   // 与 /deck?d= 相同的 base64url 编码
+  format: string;      // ocg | tcg | md
+  created_at: number;
+  updated_at: number;
+}
+
+export interface AdminUserRow {
+  id: number;
+  username: string;
+  role: string;
+  created_at: number;
+  last_login: number | null;
+  fav_count: number;
+  deck_count: number;
+}

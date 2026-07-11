@@ -61,3 +61,47 @@ export function listWallpapers(p: WallpaperParams): Promise<WallpaperListRespons
 }
 
 export const listWallpaperTags = () => get<WallpaperTagCount[]>(`/api/wallpapers/tags`);
+
+// ---------------- M10 账号体系 ----------------
+import type { AuthUser, FavKind, UserDeck, AdminUserRow } from "../../shared/types";
+export type { AuthUser, FavKind, UserDeck, AdminUserRow };
+
+async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
+  const res = await fetch(path, {
+    method,
+    headers: body !== undefined ? { "content-type": "application/json" } : undefined,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+  const data = (await res.json().catch(() => ({}))) as T & { error?: string };
+  if (!res.ok) throw new Error(data.error || `${res.status} ${path}`);
+  return data;
+}
+
+export const authRegister = (username: string, password: string) =>
+  send<{ user: AuthUser }>("/api/auth/register", "POST", { username, password });
+export const authLogin = (username: string, password: string) =>
+  send<{ user: AuthUser }>("/api/auth/login", "POST", { username, password });
+export const authLogout = () => send<{ ok: true }>("/api/auth/logout", "POST");
+export const authMe = () => get<{ user: AuthUser }>("/api/auth/me");
+
+export const listFavorites = (kind: FavKind) => get<{ items: string[] }>(`/api/me/favorites?kind=${kind}`);
+export const addFavorite = (kind: FavKind, ref: string | number) =>
+  send<{ ok: true }>(`/api/me/favorites/${kind}/${encodeURIComponent(String(ref))}`, "PUT");
+export const removeFavorite = (kind: FavKind, ref: string | number) =>
+  send<{ ok: true }>(`/api/me/favorites/${kind}/${encodeURIComponent(String(ref))}`, "DELETE");
+
+export const listMyDecks = () => get<{ items: UserDeck[] }>("/api/me/decks");
+export const saveMyDeck = (d: { id?: number; name: string; deck_code: string; format: string }) =>
+  send<{ id: number }>("/api/me/decks", "POST", d);
+export const deleteMyDeck = (id: number) => send<{ ok: true }>(`/api/me/decks/${id}`, "DELETE");
+
+export const cardsByIds = (ids: (string | number)[]) =>
+  get<{ items: CardSummary[] }>(`/api/cards?ids=${ids.join(",")}`);
+
+export const adminListUsers = () => get<{ items: AdminUserRow[] }>("/api/admin/users");
+export const adminCreateWallpaper = (w: Record<string, unknown>) =>
+  send<{ id: string }>("/api/admin/wallpapers", "POST", w);
+export const adminUpdateWallpaper = (id: string, w: Record<string, unknown>) =>
+  send<{ ok: true }>(`/api/admin/wallpapers/${encodeURIComponent(id)}`, "PUT", w);
+export const adminDeleteWallpaper = (id: string) =>
+  send<{ ok: true }>(`/api/admin/wallpapers/${encodeURIComponent(id)}`, "DELETE");

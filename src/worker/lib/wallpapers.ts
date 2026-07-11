@@ -57,10 +57,19 @@ const COLS = "id,title,tags,category,device,width,height,ratio,file_type,file_si
 
 export async function listWallpapers(
   db: D1Database,
-  params: { q?: string; device?: string; category?: string; tag?: string; sort?: string; page: number; size: number }
+  params: { q?: string; device?: string; category?: string; tag?: string; sort?: string; ids?: string; page: number; size: number }
 ): Promise<WallpaperListResponse> {
   const where: string[] = [];
   const binds: unknown[] = [];
+
+  // 按 id 批量取（M10 用户收藏页用）
+  if (params.ids) {
+    const ids = params.ids.split(",").map((s) => s.replace(/[^a-z0-9]/gi, "")).filter(Boolean).slice(0, 100);
+    if (ids.length) {
+      where.push(`id IN (${ids.map(() => "?").join(",")})`);
+      binds.push(...ids);
+    }
+  }
 
   if (params.q && params.q.trim()) {
     // 别名展开：整词命中或包含中文关键词时翻译为英文标签
@@ -207,4 +216,92 @@ export async function proxyWallpaperImage(
   }
   if (ctx) ctx.waitUntil(cache.put(cacheKey, res.clone()));
   return res;
+}
+
+// ---------- 管理端 CRUD（M10：仅 admin 路由调用） ----------
+export interface WallpaperUpsert {
+  id?: string;
+  title?: string;
+  tags?: string;        // 逗号分隔
+  category: string;     // wallpaper | artwork | character
+  device: string;       // pc | mobile
+  width?: number;
+  height?: number;
+  image_url: string;
+  thumb_url?: string;
+  source?: string;
+  source_url?: string;
+}
+
+const WP_CATEGORIES = ["wallpaper", "artwork", "character"];
+const WP_DEVICES = ["pc", "mobile"];
+
+export async function adminCreateWallpaper(
+  db: D1Database, w: WallpaperUpsert,
+): Promise<{ id: string } | { error: string }> {
+  if (!w.image_url || !/^https?:\/\//.test(w.image_url)) return { error: "image_url 需为 http(s) 直链" };
+  if (!WP_CATEGORIES.includes(w.category)) return { error: "category 无效" };
+  if (!WP_DEVICES.includes(w.device)) return { error: "device 无效" };
+  const id = (w.id || "u" + Math.random().toString(36).slice(2, 9)).replace(/[^a-z0-9]/gi, "").slice(0, 16);
+  if (!id) return { error: "id 无效" };
+  const exists = await db.prepare("SELECT id FROM wallpapers WHERE id = ?").bind(id).first();
+  if (exists) return { error: `id「${id}」已存在` };
+  const width = w.width || 0, height = w.height || 0;
+  await db
+    .prepare(
+      `INSERT INTO wallpapers (id,title,tags,category,device,width,height,ratio,file_type,file_size,colors,favorites,views,source,source_url,image_url,thumb_url,created_at)
+       VALUES (?,?,?,?,?,?,?,?,?,NULL,NULL,0,0,?,?,?,?,datetime('now'))`,
+    )
+    .bind(
+      id, w.title || null, w.tags || null, w.category, w.device,
+      width, height, height ? width / height : null,
+      w.image_url.endsWith(".png") ? "image/png" : "image/jpeg",
+      w.source || "manual", w.source_url || null, w.image_url, w.thumb_url || null,
+    )
+    .run();
+  return { id };
+}
+
+export async function adminUpdateWallpaper(
+  db: D1Database, id: string,
+  w: Partial<WallpaperUpsert>,
+): Promise<{ ok: true } | { error: string }> {
+  const sets: string[] = [];
+  const binds: unknown[] = [];
+  if (w.title !== undefined) { sets.push("title = ?"); binds.push(w.title || null); }
+  if (w.tags !== undefined) { sets.push("tags = ?"); binds.push(w.tags || null); }
+  if (w.category !== undefined) {
+    if (!WP_CATEGORIES.includes(w.category)) return { error: "category 无效" };
+    sets.push("category = ?"); binds.push(w.category);
+  }
+  if (w.device !== undefined) {
+    if (!WP_DEVICES.includes(w.device)) return { error: "device 无效" };
+    sets.push("device = ?"); binds.push(w.device);
+  }
+  if (w.source_url !== undefined) { sets.push("source_url = ?"); binds.push(w.source_url || null); }
+  if (w.image_url !== undefined) {
+    if (!/^https?:\/\//.test(w.image_url)) return { error: "image_url 需为 http(s) 直链" };
+    sets.push("image_url = ?"); binds.push(w.image_url);
+  }
+  if (w.thumb_url !== undefined) { sets.push("thumb_url = ?"); binds.push(w.thumb_url || null); }
+  if (!sets.length) return { error: "没有要更新的字段" };
+  const r = await db
+    .prepare(`UPDATE wallpapers SET ${sets.join(", ")} WHERE id = ?`)
+    .bind(...binds, id.replace(/[^a-z0-9]/gi, ""))
+    .run();
+  if (!r.meta.changes) return { error: "壁纸不存在" };
+  return { ok: true };
+}
+
+export async function adminDeleteWallpaper(
+  db: D1Database, id: string, bucket?: R2Bucket,
+): Promise<{ ok: true } | { error: string }> {
+  const safe = id.replace(/[^a-z0-9]/gi, "");
+  const r = await db.prepare("DELETE FROM wallpapers WHERE id = ?").bind(safe).run();
+  if (!r.meta.changes) return { error: "壁纸不存在" };
+  // 顺带清掉 R2 自托管副本（失败不影响删除结果）
+  if (bucket) {
+    try { await bucket.delete([`wallpapers/${safe}`, `wallpapers_small/${safe}`]); } catch { /* noop */ }
+  }
+  return { ok: true };
 }

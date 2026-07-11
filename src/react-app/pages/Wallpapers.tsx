@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { listWallpapers, listWallpaperTags } from "../lib/api";
 import type { WallpaperItem, WallpaperTagCount } from "../../shared/types";
 import { Spinner, Empty, ErrorBox } from "../components/common";
+import { FavButton } from "../components/badges";
 import { useLang } from "../lib/i18n";
 import "./Wallpapers.css";
 
@@ -172,6 +173,7 @@ export default function Wallpapers() {
                 )}
               </div>
               <div className="wp-lb-actions">
+                <FavButton kind="wallpaper" refId={active.id} />
                 <a className="btn btn-primary" href={active.url} download={`ygo-wallpaper-${active.id}`} target="_blank" rel="noreferrer">
                   ⬇ {t("wp.download")}
                 </a>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getCard } from "../lib/api";
 import type { CardDetail as CardDetailT } from "../../shared/types";
-import { AttributeIcon, LevelStars, LinkMarkers, FrameBadge, BanBadges, SubtypeChips, MdRarityBadge } from "../components/badges";
+import { AttributeIcon, LevelStars, LinkMarkers, FrameBadge, BanBadges, SubtypeChips, MdRarityBadge, FavButton } from "../components/badges";
 import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, ErrorBox } from "../components/common";
 import { frameColor, statStr } from "../lib/labels";
@@ -81,6 +81,7 @@ export default function CardDetail() {
             </>
           )}
           <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <FavButton kind="card" refId={card.id} />
             <Link className="btn" to={`/maker?from=${card.id}`}>{t("detail.makeCard")}</Link>
             <a className="btn btn-ghost" href={art?.url} target="_blank" rel="noreferrer">{t("detail.viewOriginal")}</a>
           </div>
