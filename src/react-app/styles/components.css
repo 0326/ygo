@@ -106,6 +106,12 @@
 }
 .ban-badges { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 .card-thumb .ct-ban { position: absolute; top: 6px; right: 6px; z-index: 2; }
+/* MD 罕贵角标：左下角（属性在左上、禁限在右上；hover 时卡名渐变层在其上层） */
+.card-thumb .ct-md {
+  position: absolute; left: 6px; bottom: 6px;
+  font-size: 10px; font-weight: 800; letter-spacing: .3px;
+  padding: 1px 5px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.4);
+}
 
 /* ---- 子类型 chip (M6) ---- */
 .subtype-chip { background: rgba(110,168,254,.14); border-color: rgba(110,168,254,.4); color: #aecbff; }

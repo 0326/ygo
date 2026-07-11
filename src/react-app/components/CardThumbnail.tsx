@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import type { CardSummary } from "../../shared/types";
-import { frameColor } from "../lib/labels";
+import { frameColor, MD_RARITY_COLOR } from "../lib/labels";
 import { AttributeIcon, BanBadge } from "./badges";
 
 export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; showAttr?: boolean }) {
@@ -26,6 +26,17 @@ export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; s
         <span className="ct-badge"><AttributeIcon attr={card.attribute} size={22} /></span>
       )}
       {card.ban && <span className="ct-ban"><BanBadge ban={card.ban} dot /></span>}
+      {card.md_rarity && (
+        <span
+          className="ct-md"
+          style={{
+            background: MD_RARITY_COLOR[card.md_rarity],
+            color: card.md_rarity === "N" || card.md_rarity === "R" ? "#1a1a1a" : "#fff",
+          }}
+        >
+          {card.md_rarity}
+        </span>
+      )}
       <span className="ct-name">{card.cn_name}</span>
     </Link>
   );
