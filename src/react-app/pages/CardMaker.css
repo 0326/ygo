@@ -147,6 +147,99 @@ select.maker-input {
   cursor: pointer;
 }
 
+/* 搜索联想下拉 */
+.maker-suggest-wrap {
+  position: relative;
+}
+.maker-suggest {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-2);
+  max-height: 340px;
+  overflow-y: auto;
+}
+.maker-suggest button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--text-0);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+.maker-suggest button:hover {
+  background: rgba(217, 179, 94, 0.12);
+}
+.maker-suggest img {
+  width: 28px;
+  height: 41px;
+  object-fit: cover;
+  border-radius: 3px;
+  flex: none;
+  background: var(--bg-1);
+}
+.maker-suggest .ms-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.maker-suggest .ms-id {
+  color: var(--text-2);
+  font-size: 12px;
+  flex: none;
+}
+
+/* 卡框色块芯片 */
+.maker-frames {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.maker-frame-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--text-1);
+  font-size: 13px;
+  transition: 0.15s;
+}
+.maker-frame-chip i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--fg, #fff), var(--fc, #888));
+  border: 1px solid rgba(0, 0, 0, 0.35);
+}
+.maker-frame-chip:hover {
+  border-color: var(--fc, var(--gold));
+  color: var(--text-0);
+}
+.maker-frame-chip.on {
+  border-color: var(--fc, var(--gold));
+  background: color-mix(in srgb, var(--fc, #888) 22%, var(--bg-2));
+  color: var(--text-0);
+  font-weight: 600;
+}
+
 /* 分段按钮 */
 .maker-seg {
   display: flex;

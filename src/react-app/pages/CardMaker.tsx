@@ -1,5 +1,6 @@
 // M2.1 自定义制卡器：左侧实时卡面预览 + 右侧表单控件。
-// 每次表单变化都通过共享渲染器重绘 canvas；支持高 DPI 导出与「从现有卡片预填」。
+// 表单支持卡名/卡密搜索联想预填；卡框为色块芯片；种族/类别/能力下拉全覆盖。
+// 每次表单变化都通过共享渲染器重绘 canvas；支持打印级导出与「从现有卡片预填」。
 import {
   useCallback,
   useEffect,
@@ -12,11 +13,17 @@ import type {
   Attribute,
   Frame,
   LinkMarker,
+  MonsterSubtype,
+  CardSummary,
 } from "../../shared/types";
-import { getCard } from "../lib/api";
+import { getCard, searchCards } from "../lib/api";
 import {
   ATTR_OPTIONS,
-  FRAME_OPTIONS,
+  FRAME_CN,
+  FRAME_COLOR,
+  RACE_CN,
+  SUBTYPE_OPTIONS,
+  ST_SUBTYPE_OPTIONS,
 } from "../lib/labels";
 import {
   CARD_RATIO,
@@ -29,38 +36,31 @@ import "./CardMaker.css";
 
 const RARITIES = ["普通", "金字", "闪", "烫金"] as const;
 
-// 怪兽卡框（决定 level/atk/def 等怪兽专属字段是否可用）
-const MONSTER_FRAMES: Frame[] = [
-  "normal",
-  "effect",
-  "ritual",
-  "fusion",
-  "synchro",
-  "xyz",
-  "link",
+// 怪兽卡框芯片（连接也在其中：选中即连接怪兽）
+const FRAME_CHIPS: Frame[] = [
+  "normal", "effect", "ritual", "fusion", "synchro", "xyz", "link", "token",
 ];
+// 可叠加灵摆的卡框（连接/衍生物无灵摆变体）
+const PEND_OK: Frame[] = ["normal", "effect", "ritual", "fusion", "synchro", "xyz"];
+
+// 怪兽种族（英文 key -> 简中显示复用 RACE_CN）
+const MONSTER_RACES: string[] = [
+  "Dragon", "Spellcaster", "Warrior", "Beast-Warrior", "Beast", "Winged Beast",
+  "Fiend", "Fairy", "Zombie", "Machine", "Aqua", "Fish", "Sea Serpent",
+  "Reptile", "Dinosaur", "Wyrm", "Insect", "Plant", "Rock", "Pyro", "Thunder",
+  "Psychic", "Cyberse", "Illusion", "Divine-Beast", "Creator-God",
+];
+// 陷阱仅有 通常/永续/反击
+const TRAP_KINDS = new Set(["Normal", "Continuous", "Counter"]);
 
 const MARKER_GRID: (LinkMarker | null)[] = [
-  "top-left",
-  "top",
-  "top-right",
-  "left",
-  null, // 中心占位
-  "right",
-  "bottom-left",
-  "bottom",
-  "bottom-right",
+  "top-left", "top", "top-right",
+  "left", null, "right",
+  "bottom-left", "bottom", "bottom-right",
 ];
-
 const MARKER_ARROW: Record<LinkMarker, string> = {
-  "top-left": "↖",
-  top: "↑",
-  "top-right": "↗",
-  left: "←",
-  right: "→",
-  "bottom-left": "↙",
-  bottom: "↓",
-  "bottom-right": "↘",
+  "top-left": "↖", top: "↑", "top-right": "↗", left: "←",
+  right: "→", "bottom-left": "↙", bottom: "↓", "bottom-right": "↘",
 };
 
 interface State {
@@ -73,6 +73,7 @@ interface State {
   level: string; // 输入态保持字符串
   scale: string;
   race: string;
+  subtype: MonsterSubtype | "";
   effect: string;
   pendulumEffect: string;
   atk: string; // "" 隐藏，"?" => -1
@@ -93,6 +94,7 @@ const DEFAULT_STATE: State = {
   level: "4",
   scale: "4",
   race: "Spellcaster",
+  subtype: "",
   effect:
     "①：这张卡可以由你随意书写效果。\n②：这是一张由「游戏王集卡社」制卡器生成的同人卡，仅供创作与欣赏，不可用于任何官方比赛。",
   pendulumEffect: "",
@@ -132,6 +134,7 @@ function buildModel(s: State, art: HTMLImageElement | null): CardModel {
     linkMarkers: s.linkMarkers,
     scale: s.isPendulum ? parseNum(s.scale) : null,
     race: s.race,
+    subtype: s.cardType === "monster" ? s.subtype : "",
     effect: s.effect,
     pendulumEffect: s.isPendulum ? s.pendulumEffect : null,
     atk: s.cardType === "monster" ? parseStat(s.atk) : null,
@@ -242,6 +245,7 @@ export default function CardMaker() {
         level: c.level != null ? String(c.level) : "",
         scale: c.scale != null ? String(c.scale) : s.scale,
         race: c.race ?? "",
+        subtype: (c.subtypes?.[0] as MonsterSubtype) ?? "",
         effect: c.effect_cn ?? "",
         pendulumEffect: c.pendulum_effect_cn ?? "",
         atk: c.atk === -1 ? "?" : c.atk != null ? String(c.atk) : "",
@@ -264,13 +268,46 @@ export default function CardMaker() {
       }
       setPrefillMsg(`已预填：${c.cn_name}`);
     } catch {
-      setPrefillMsg("未找到该卡片，请检查密码 / ID");
+      setPrefillMsg("未找到该卡片，请检查卡名 / 卡密");
     } finally {
       setPrefillBusy(false);
     }
   };
 
-  const onPrefill = () => runPrefill(prefillId);
+  // ---- 搜索联想（卡名/卡密皆可；纯数字直接按卡密预填） ----
+  const [sug, setSug] = useState<CardSummary[]>([]);
+  const [showSug, setShowSug] = useState(false);
+  useEffect(() => {
+    const q = prefillId.trim();
+    if (!q || /^\d+$/.test(q)) { setSug([]); setShowSug(false); return; }
+    const t = setTimeout(() => {
+      searchCards({ q, size: 8 })
+        .then((r) => { setSug(r.items); setShowSug(r.items.length > 0); })
+        .catch(() => {});
+    }, 250);
+    return () => clearTimeout(t);
+  }, [prefillId]);
+
+  const pickSuggestion = (c: CardSummary) => {
+    setPrefillId(c.cn_name || c.en_name);
+    setShowSug(false);
+    void runPrefill(String(c.id));
+  };
+
+  const onPrefill = () => {
+    const q = prefillId.trim();
+    if (!q) return;
+    if (/^\d+$/.test(q)) {
+      void runPrefill(q);
+    } else if (sug.length > 0) {
+      pickSuggestion(sug[0]);
+    } else {
+      // 名称搜索兜底：取第一条结果
+      searchCards({ q, size: 1 })
+        .then((r) => (r.items[0] ? pickSuggestion(r.items[0]) : setPrefillMsg("未找到该卡片，请检查卡名 / 卡密")))
+        .catch(() => setPrefillMsg("搜索失败，请稍后重试"));
+    }
+  };
 
   // 从卡片详情页跳转预填：/maker?from=:id
   const [sp] = useSearchParams();
@@ -292,9 +329,34 @@ export default function CardMaker() {
     }));
   };
 
+  // 卡种切换：魔陷的类别复用 race 字段，切换时纠正到合法值
+  const switchCardType = (t: "monster" | "spell" | "trap") => {
+    setState((s) => {
+      let race = s.race;
+      if (t === "monster") {
+        if (!MONSTER_RACES.includes(race)) race = "Dragon";
+      } else if (t === "trap") {
+        if (!TRAP_KINDS.has(race)) race = "Normal";
+      } else {
+        if (!ST_SUBTYPE_OPTIONS.some((o) => o.value === race)) race = "Normal";
+      }
+      return { ...s, cardType: t, race };
+    });
+  };
+
+  // 卡框芯片：选中「连接」即连接怪兽；连接/衍生物不可叠灵摆
+  const pickFrame = (f: Frame) => {
+    setState((s) => ({
+      ...s,
+      frame: f,
+      isLink: f === "link",
+      isPendulum: PEND_OK.includes(f) ? s.isPendulum : false,
+      subtype: f === "token" ? "" : s.subtype,
+    }));
+  };
+
   const isMonster = state.cardType === "monster";
-  const canPendulum =
-    isMonster && !state.isLink && MONSTER_FRAMES.includes(state.frame);
+  const canPendulum = isMonster && PEND_OK.includes(state.frame);
 
   return (
     <div className="page maker-page fade-in">
@@ -326,29 +388,40 @@ export default function CardMaker() {
 
           {/* 右：表单 */}
           <section className="maker-form">
-            {/* 预填 */}
+            {/* 搜索预填 */}
             <fieldset className="maker-fs">
-              <legend>从现有卡片预填</legend>
-              <div className="maker-row">
+              <legend>搜索卡片预填</legend>
+              <div className="maker-row maker-suggest-wrap">
                 <input
                   className="maker-input"
-                  placeholder="输入卡片密码 / ID"
+                  placeholder="输入卡名或卡密，如 青眼白龙 / 89631139"
                   value={prefillId}
                   onChange={(e) => setPrefillId(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && onPrefill()}
+                  onFocus={() => sug.length > 0 && setShowSug(true)}
+                  onBlur={() => setTimeout(() => setShowSug(false), 150)}
                 />
-                <button
-                  className="btn"
-                  onClick={onPrefill}
-                  disabled={prefillBusy}
-                >
+                <button className="btn" onClick={onPrefill} disabled={prefillBusy}>
                   {prefillBusy ? "载入中…" : "预填"}
                 </button>
+                {showSug && (
+                  <ul className="maker-suggest">
+                    {sug.map((c) => (
+                      <li key={c.id}>
+                        <button type="button" onMouseDown={(e) => { e.preventDefault(); pickSuggestion(c); }}>
+                          <img src={c.thumb_url} alt="" loading="lazy" />
+                          <span className="ms-name">{c.cn_name || c.en_name}</span>
+                          <span className="ms-id">{c.id}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               {prefillMsg && <p className="maker-msg muted">{prefillMsg}</p>}
             </fieldset>
 
-            {/* 卡类型 / 卡框 */}
+            {/* 卡片类型 + 卡框 */}
             <fieldset className="maker-fs">
               <legend>卡片类型</legend>
               <div className="maker-seg">
@@ -356,27 +429,55 @@ export default function CardMaker() {
                   <button
                     key={t}
                     className={`maker-seg-btn ${state.cardType === t ? "on" : ""}`}
-                    onClick={() => set("cardType", t)}
+                    onClick={() => switchCardType(t)}
                   >
                     {t === "monster" ? "怪兽" : t === "spell" ? "魔法" : "陷阱"}
                   </button>
                 ))}
               </div>
+
               {isMonster && (
+                <div className="maker-field">
+                  <span>卡框（选「连接」即连接怪兽）</span>
+                  <div className="maker-frames">
+                    {FRAME_CHIPS.map((f) => (
+                      <button
+                        key={f}
+                        className={`maker-frame-chip ${state.frame === f ? "on" : ""}`}
+                        style={{ "--fc": FRAME_COLOR[f].base, "--fg": FRAME_COLOR[f].glow } as React.CSSProperties}
+                        onClick={() => pickFrame(f)}
+                      >
+                        <i />{FRAME_CN[f]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {isMonster && canPendulum && (
+                <label className="maker-check" style={{ marginTop: 12 }}>
+                  <input
+                    type="checkbox"
+                    checked={state.isPendulum}
+                    onChange={(e) => set("isPendulum", e.target.checked)}
+                  />
+                  灵摆怪兽 (Pendulum)
+                </label>
+              )}
+
+              {!isMonster && (
                 <label className="maker-field">
-                  <span>卡框模板</span>
+                  <span>类别（决定名条右侧图标）</span>
                   <select
                     className="maker-input"
-                    value={state.frame}
-                    onChange={(e) => set("frame", e.target.value as Frame)}
+                    value={state.race}
+                    onChange={(e) => set("race", e.target.value)}
                   >
-                    {FRAME_OPTIONS.filter((o) =>
-                      MONSTER_FRAMES.includes(o.value),
-                    ).map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
+                    {ST_SUBTYPE_OPTIONS
+                      .filter((o) => state.cardType === "spell" || TRAP_KINDS.has(o.value))
+                      .map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
                   </select>
                 </label>
               )}
@@ -396,100 +497,93 @@ export default function CardMaker() {
               </label>
 
               {isMonster && (
+                <div className="maker-row">
+                  <label className="maker-field">
+                    <span>属性</span>
+                    <select
+                      className="maker-input"
+                      value={state.attribute ?? ""}
+                      onChange={(e) =>
+                        set("attribute", (e.target.value || null) as Attribute | null)
+                      }
+                    >
+                      <option value="">（无）</option>
+                      {ATTR_OPTIONS.map((o) => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="maker-field">
+                    <span>种族</span>
+                    <select
+                      className="maker-input"
+                      value={MONSTER_RACES.includes(state.race) ? state.race : ""}
+                      onChange={(e) => set("race", e.target.value)}
+                    >
+                      {!MONSTER_RACES.includes(state.race) && <option value="">（选择种族）</option>}
+                      {MONSTER_RACES.map((r) => (
+                        <option key={r} value={r}>{RACE_CN[r] || r}族</option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              )}
+
+              {isMonster && state.frame !== "token" && (
                 <label className="maker-field">
-                  <span>属性</span>
+                  <span>能力子类型</span>
                   <select
                     className="maker-input"
-                    value={state.attribute ?? ""}
-                    onChange={(e) =>
-                      set(
-                        "attribute",
-                        (e.target.value || null) as Attribute | null,
-                      )
-                    }
+                    value={state.subtype}
+                    onChange={(e) => set("subtype", e.target.value as MonsterSubtype | "")}
                   >
                     <option value="">（无）</option>
-                    {ATTR_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
+                    {SUBTYPE_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.label}</option>
                     ))}
                   </select>
                 </label>
               )}
-
-              <label className="maker-field">
-                <span>{isMonster ? "种族" : "类别"}</span>
-                <input
-                  className="maker-input"
-                  value={state.race}
-                  onChange={(e) => set("race", e.target.value)}
-                  placeholder={isMonster ? "如 Dragon / 龙" : "如 Continuous / 永续"}
-                />
-              </label>
             </fieldset>
 
             {/* 怪兽数值 */}
             {isMonster && (
               <fieldset className="maker-fs">
-                <legend>怪兽设定</legend>
-                <div className="maker-toggles">
-                  <label className="maker-check">
-                    <input
-                      type="checkbox"
-                      checked={state.isLink}
-                      onChange={(e) => set("isLink", e.target.checked)}
-                    />
-                    连接怪兽 (Link)
-                  </label>
-                  {canPendulum && (
-                    <label className="maker-check">
+                <legend>数值</legend>
+                <div className="maker-row">
+                  {!state.isLink && (
+                    <label className="maker-field">
+                      <span>{state.frame === "xyz" ? "阶级" : "等级"}</span>
                       <input
-                        type="checkbox"
-                        checked={state.isPendulum}
-                        onChange={(e) => set("isPendulum", e.target.checked)}
+                        className="maker-input"
+                        type="number"
+                        min={0}
+                        max={13}
+                        value={state.level}
+                        onChange={(e) => set("level", e.target.value)}
                       />
-                      灵摆怪兽 (Pendulum)
                     </label>
                   )}
-                </div>
-
-                {!state.isLink && (
-                  <label className="maker-field">
-                    <span>{state.frame === "xyz" ? "阶级" : "等级"}</span>
-                    <input
-                      className="maker-input"
-                      type="number"
-                      min={0}
-                      max={13}
-                      value={state.level}
-                      onChange={(e) => set("level", e.target.value)}
-                    />
-                  </label>
-                )}
-
-                {state.isPendulum && (
-                  <label className="maker-field">
-                    <span>灵摆刻度</span>
-                    <input
-                      className="maker-input"
-                      type="number"
-                      min={0}
-                      max={13}
-                      value={state.scale}
-                      onChange={(e) => set("scale", e.target.value)}
-                    />
-                  </label>
-                )}
-
-                <div className="maker-row">
+                  {state.isPendulum && (
+                    <label className="maker-field">
+                      <span>灵摆刻度</span>
+                      <input
+                        className="maker-input"
+                        type="number"
+                        min={0}
+                        max={13}
+                        value={state.scale}
+                        onChange={(e) => set("scale", e.target.value)}
+                      />
+                    </label>
+                  )}
                   <label className="maker-field">
                     <span>攻击力</span>
                     <input
                       className="maker-input"
                       value={state.atk}
                       onChange={(e) => set("atk", e.target.value)}
-                      placeholder="数字 / ? / 留空隐藏"
+                      placeholder="数字 / ? / 留空"
                     />
                   </label>
                   {!state.isLink && (
@@ -499,7 +593,7 @@ export default function CardMaker() {
                         className="maker-input"
                         value={state.def}
                         onChange={(e) => set("def", e.target.value)}
-                        placeholder="数字 / ? / 留空隐藏"
+                        placeholder="数字 / ? / 留空"
                       />
                     </label>
                   )}
@@ -507,7 +601,7 @@ export default function CardMaker() {
 
                 {state.isLink && (
                   <div className="maker-field">
-                    <span>连接标记（点击切换，至少选 1）</span>
+                    <span>连接标记（点击切换，LINK 值 = 已选数量）</span>
                     <div className="maker-marker-grid">
                       {MARKER_GRID.map((m, i) =>
                         m === null ? (
@@ -519,9 +613,7 @@ export default function CardMaker() {
                         ) : (
                           <button
                             key={i}
-                            className={`maker-marker ${
-                              state.linkMarkers.includes(m) ? "on" : ""
-                            }`}
+                            className={`maker-marker ${state.linkMarkers.includes(m) ? "on" : ""}`}
                             onClick={() => toggleMarker(m)}
                             title={m}
                           >

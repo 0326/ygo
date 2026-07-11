@@ -4,8 +4,8 @@
 // 成品在实卡版权文字位标注「@游戏王集卡社同人卡」，明确为同人二创。
 // 说明：素材/字体需异步加载，故绘制走「preload → 同步 render」两段式；renderCard 为便捷 async 封装。
 
-import type { Frame, Attribute, LinkMarker } from "../../shared/types";
-import { raceCn } from "../lib/labels";
+import type { Frame, Attribute, LinkMarker, MonsterSubtype } from "../../shared/types";
+import { raceCn, SUBTYPE_CN } from "../lib/labels";
 
 /** 制卡器与渲染器共用的卡面数据模型（保持不变，向后兼容） */
 export interface CardModel {
@@ -20,6 +20,7 @@ export interface CardModel {
   linkMarkers: LinkMarker[];
   scale: number | null;
   race: string;
+  subtype?: MonsterSubtype | "";  // 能力子类型：调整/反转/二重/灵魂/同盟/卡通
   effect: string;
   pendulumEffect: string | null;
   atk: number | null;   // null 隐藏；-1 => "?"
@@ -291,17 +292,22 @@ function statText(v: number | null): string {
   return String(v);
 }
 
-// 构造怪兽类别行【种族／能力／类别】
+// 构造怪兽类别行【种族／召唤类型／灵摆／能力／通常|效果】（对齐实卡顺序）
 function monsterTypeLine(m: CardModel): string {
   const parts: string[] = [];
   const rc = raceCn(m.race) || m.race;
   if (rc) parts.push(/[一-鿿]/.test(rc) ? `${rc}族` : rc);
+  if (m.frame === "token") {
+    parts.push("衍生物");
+    return `【${parts.join("／")}】`;
+  }
   if (m.isLink) parts.push("连接");
   else if (m.frame === "xyz") parts.push("超量");
   else if (m.frame === "synchro") parts.push("同调");
   else if (m.frame === "fusion") parts.push("融合");
   else if (m.frame === "ritual") parts.push("仪式");
   if (m.isPendulum && !m.isLink) parts.push("灵摆");
+  if (m.subtype && SUBTYPE_CN[m.subtype]) parts.push(SUBTYPE_CN[m.subtype]);
   parts.push(m.frame === "normal" ? "通常" : "效果");
   return `【${parts.join("／")}】`;
 }
