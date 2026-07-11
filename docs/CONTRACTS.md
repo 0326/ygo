@@ -38,6 +38,23 @@ TypeScript 形态见 [`src/shared/types.ts`](../src/shared/types.ts)（前后端
 - 缓存：所有 `/api/*` 经 Cache API 边缘缓存（卡片数据近静态），避免打爆 D1 免费读配额。
 - 图片 URL 契约：`/img/{image_key}` 与 `/img/{image_key}/s`（缩略）。终态切到 R2 自定义域名 `img.hajimikitty.com` 时前端无感。
 
+## 4.2.1 壁纸模块（M9）
+
+Schema 见 [`migrations/0002_wallpapers.sql`](../migrations/0002_wallpapers.sql)（独立增量迁移，不触碰 0001 卡片表）。
+采集脚本 [`scripts/collect-wallpapers.mjs`](../scripts/collect-wallpapers.mjs)（Wallhaven API，限速 45 req/min）生成 `data/wallpapers.seed.sql`，可重复执行增量刷新。
+
+- `wallpapers`：来源站短 id 为主键；`device ∈ {pc,mobile}` 按宽高比分（横≥1 为 pc）；`category ∈ {wallpaper,artwork,character}` 由角色/怪兽子查询命中归类；`tags` 逗号分隔英文标签（热度 top 400 补全完整标签）。
+
+| 端点 | 返回 | 缓存 |
+|---|---|---|
+| `GET /api/wallpapers?q=&device=&category=&tag=&sort=&page=&size=` | `WallpaperListResponse` | 300s |
+| `GET /api/wallpapers/tags` | `WallpaperTagCount[]`（热门标签 chips） | 3600s |
+| `GET /api/wallpapers/stats` | 数量统计 | 3600s |
+| `GET /wp-img/:id` / `GET /wp-img/:id/s` | 壁纸原图/缩略（R2 自托管懒回填，同卡图管线） | 30d |
+
+- `q` 支持中文常用词（服务端别名表翻译为英文标签，如 `青眼白龙 → blue-eyes white dragon`）；`sort ∈ {(默认热度),newest,resolution}`。
+- npm 脚本：`wp:collect` 采集、`wp:migrate`/`wp:seed`（local）、`wp:migrate:remote`/`wp:seed:remote`。
+
 ## 4.3 设计系统 & 共享组件
 
 - **Design tokens**：[`src/react-app/styles/tokens.css`](../src/react-app/styles/tokens.css)（配色按卡框色系延展、CJK 字体、间距、圆角、移动端断点 720px）。
@@ -53,3 +70,4 @@ TypeScript 形态见 [`src/shared/types.ts`](../src/shared/types.ts)（前后端
 | M0 | `migrations/`、`scripts/`、`src/worker/`、`src/shared/`、`src/react-app/lib/`、`src/react-app/styles/`、`src/react-app/components/` |
 | M1 Track A | `pages/Home/Search/CardDetail/Archetypes/ArchetypeDetail/Sets` |
 | M2 Track B | `src/react-app/canvas/`、`pages/CardMaker`、`pages/ShareImage`、`pages/DeckBuilder`、`lib/deck.ts` |
+| M9 壁纸 | `migrations/0002_wallpapers.sql`、`scripts/collect-wallpapers.mjs`、`src/worker/lib/wallpapers.ts`、`pages/Wallpapers` |

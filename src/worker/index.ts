@@ -1,6 +1,7 @@
 // M0.3 数据 API（Workers 动态查询）+ M0.2 卡图代理。契约见 src/shared/types.ts。
 import { Hono } from "hono";
 import * as Q from "./lib/queries";
+import * as W from "./lib/wallpapers";
 import { proxyImage } from "./lib/images";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -79,6 +80,30 @@ app.get("/api/archetypes/:id", (c) =>
 app.get("/api/sets", (c) => cached(c, 3600, () => Q.listSets(c.env.ygo_db)));
 app.get("/api/sets/:code", (c) =>
   cached(c, 3600, () => Q.setDetail(c.env.ygo_db, c.req.param("code")))
+);
+
+// ---------- 壁纸（M9：全网游戏王壁纸/原画/角色图库） ----------
+app.get("/api/wallpapers/tags", (c) =>
+  cached(c, 3600, () => W.wallpaperTags(c.env.ygo_db))
+);
+app.get("/api/wallpapers/stats", (c) =>
+  cached(c, 3600, () => W.wallpaperStats(c.env.ygo_db))
+);
+app.get("/api/wallpapers", (c) =>
+  cached(c, 300, () => {
+    const q = c.req.query();
+    return W.listWallpapers(c.env.ygo_db, {
+      q: q.q, device: q.device, category: q.category, tag: q.tag, sort: q.sort,
+      page: intParam(q.page, 1),
+      size: intParam(q.size, 24),
+    });
+  })
+);
+app.get("/wp-img/:id/s", (c) =>
+  W.proxyWallpaperImage(c.req.raw, c.env.ygo_db, c.req.param("id"), true, c.env.IMG_BUCKET, c.executionCtx)
+);
+app.get("/wp-img/:id", (c) =>
+  W.proxyWallpaperImage(c.req.raw, c.env.ygo_db, c.req.param("id"), false, c.env.IMG_BUCKET, c.executionCtx)
 );
 
 // ---------- 站点统计 ----------

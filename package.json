@@ -47,7 +47,12 @@
 		"db:seed": "wrangler d1 execute ygo-db --local --file=data/seed.sql",
 		"db:setup": "npm run db:migrate && npm run db:seed",
 		"db:migrate:remote": "wrangler d1 execute ygo-db --remote --file=migrations/0001_init.sql",
-		"db:seed:remote": "wrangler d1 execute ygo-db --remote --file=data/seed.sql"
+		"db:seed:remote": "wrangler d1 execute ygo-db --remote --file=data/seed.sql",
+		"wp:collect": "node scripts/collect-wallpapers.mjs",
+		"wp:migrate": "wrangler d1 execute ygo-db --local --file=migrations/0002_wallpapers.sql",
+		"wp:seed": "wrangler d1 execute ygo-db --local --file=data/wallpapers.seed.sql",
+		"wp:migrate:remote": "wrangler d1 execute ygo-db --remote --file=migrations/0002_wallpapers.sql",
+		"wp:seed:remote": "wrangler d1 execute ygo-db --remote --file=data/wallpapers.seed.sql"
 	},
 	"type": "module"
 }

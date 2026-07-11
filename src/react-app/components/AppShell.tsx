@@ -7,6 +7,7 @@ const links = [
   { to: "/search", key: "nav.search" },
   { to: "/archetypes", key: "nav.archetypes" },
   { to: "/sets", key: "nav.sets" },
+  { to: "/wallpapers", key: "nav.wallpapers" },
   { to: "/maker", key: "nav.maker" },
   { to: "/deck", key: "nav.deck" },
   { to: "/share", key: "nav.share" },
@@ -24,6 +25,7 @@ const ICONS: Record<string, string> = {
   "/maker": "M12 19l7-7 3 3-7 7-3-3zM2 2l7.5 7.5M11 11l-9 9",
   "/deck": "M4 7h10v13H4zM9 4h11v13",
   "/share": "M4 12v8h16v-8M16 6l-4-4-4 4M12 2v14",
+  "/wallpapers": "M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 5",
 };
 
 export function AppShell({ children }: { children: ReactNode }) {

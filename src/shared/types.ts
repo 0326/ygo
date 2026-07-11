@@ -99,6 +99,41 @@ export interface ArchetypeSummary {
   cover_card_id: number | null;
 }
 
+// ---------------- M9 壁纸模块 ----------------
+export type WallpaperDevice = "pc" | "mobile";
+export type WallpaperCategory = "wallpaper" | "artwork" | "character";
+
+export interface WallpaperItem {
+  id: string;
+  title: string;
+  tags: string[];
+  category: WallpaperCategory;
+  device: WallpaperDevice;
+  width: number;
+  height: number;
+  ratio: number;
+  file_type: string | null;
+  file_size: number | null;
+  colors: string[];
+  favorites: number;
+  source: string | null;
+  source_url: string | null;
+  url: string;        // 原图（站内代理地址）
+  thumb_url: string;  // 缩略图（站内代理地址）
+}
+
+export interface WallpaperListResponse {
+  total: number;
+  page: number;
+  size: number;
+  items: WallpaperItem[];
+}
+
+export interface WallpaperTagCount {
+  tag: string;
+  count: number;
+}
+
 export interface SetSummary {
   code: string;
   cn_name: string;

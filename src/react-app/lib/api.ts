@@ -2,11 +2,13 @@
 import type {
   SearchResponse, CardDetail, Artwork, ArchetypeSummary,
   CardSummary, SetSummary,
+  WallpaperItem, WallpaperListResponse, WallpaperTagCount,
 } from "../../shared/types";
 
 export type {
   SearchResponse, CardDetail, Artwork, ArchetypeSummary,
   CardSummary, SetSummary,
+  WallpaperItem, WallpaperListResponse, WallpaperTagCount,
 };
 
 async function get<T>(path: string): Promise<T> {
@@ -43,3 +45,19 @@ export const getSet = (code: string) =>
   get<{ set: SetSummary; cards: CardSummary[] }>(`/api/sets/${code}`);
 export const getStats = () =>
   get<{ cards: number; archetypes: number; artworks: number; sets: number }>(`/api/stats`);
+
+// ---------------- M9 壁纸 ----------------
+export interface WallpaperParams {
+  q?: string; device?: string; category?: string; tag?: string;
+  sort?: string; page?: number; size?: number;
+}
+
+export function listWallpapers(p: WallpaperParams): Promise<WallpaperListResponse> {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(p)) {
+    if (v !== undefined && v !== null && v !== "") qs.set(k, String(v));
+  }
+  return get<WallpaperListResponse>(`/api/wallpapers?${qs.toString()}`);
+}
+
+export const listWallpaperTags = () => get<WallpaperTagCount[]>(`/api/wallpapers/tags`);

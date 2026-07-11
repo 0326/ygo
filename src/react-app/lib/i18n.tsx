@@ -16,7 +16,7 @@ export const LANGS: { value: Lang; label: string }[] = [
 const CN = {
   // 导航
   "nav.search": "查卡", "nav.archetypes": "系列图鉴", "nav.sets": "卡包",
-  "nav.maker": "制卡器", "nav.deck": "组卡", "nav.share": "长图",
+  "nav.maker": "制卡器", "nav.deck": "组卡", "nav.share": "长图", "nav.wallpapers": "壁纸",
   // 通用
   "common.search": "搜索", "common.retry": "重试", "common.prev": "上一页", "common.next": "下一页",
   "common.viewAll": "查看全部 →", "common.empty": "没有匹配的卡片，换个条件试试",
@@ -58,6 +58,15 @@ const CN = {
   "deck.importYdk": "导入 YDK", "deck.pasteImport": "粘贴导入", "deck.exportYdk": "导出 YDK",
   "deck.genImage": "生成卡组图", "deck.generating": "生成中…", "deck.copyShare": "复制分享链接", "deck.clear": "清空",
   "deck.sideAdd": "副+",
+  // 壁纸（M9）
+  "wp.title": "壁纸图库", "wp.sub": "整理全网游戏王高清壁纸 · 原画 · 角色图 {n} 张，支持搜索与设备筛选",
+  "wp.searchPh": "搜索标签：角色 / 怪兽 / 系列…（支持中文，如 青眼白龙）",
+  "wp.deviceAll": "全部设备", "wp.devicePc": "电脑壁纸", "wp.deviceMobile": "手机壁纸",
+  "wp.catAll": "全部分类", "wp.catWallpaper": "综合壁纸", "wp.catArtwork": "原画/怪兽", "wp.catCharacter": "角色",
+  "wp.sortHot": "最热", "wp.sortNew": "最新", "wp.sortRes": "分辨率",
+  "wp.matched": "共 {n} 张", "wp.empty": "没有匹配的壁纸，换个关键词试试",
+  "wp.download": "下载原图", "wp.source": "来源页面", "wp.favorites": "收藏",
+  "wp.hotTags": "热门标签",
   // 页脚
   "footer.copy": "卡图版权归 KONAMI 所有，本站仅供学习交流",
   // 赛制标记
@@ -68,7 +77,7 @@ type UIKey = keyof typeof CN;
 
 const JP: Record<UIKey, string> = {
   "nav.search": "カード検索", "nav.archetypes": "テーマ図鑑", "nav.sets": "パック",
-  "nav.maker": "カードメーカー", "nav.deck": "デッキ構築", "nav.share": "シェア画像",
+  "nav.maker": "カードメーカー", "nav.deck": "デッキ構築", "nav.share": "シェア画像", "nav.wallpapers": "壁紙",
   "common.search": "検索", "common.retry": "再試行", "common.prev": "前へ", "common.next": "次へ",
   "common.viewAll": "すべて見る →", "common.empty": "該当するカードがありません。条件を変えてみてください",
   "common.searchPlaceholder": "カード名 / テキストを検索…", "common.cards": "枚",
@@ -104,13 +113,21 @@ const JP: Record<UIKey, string> = {
   "deck.importYdk": "YDK 読込", "deck.pasteImport": "貼り付け読込", "deck.exportYdk": "YDK 出力",
   "deck.genImage": "デッキ画像生成", "deck.generating": "生成中…", "deck.copyShare": "共有リンクをコピー", "deck.clear": "クリア",
   "deck.sideAdd": "サイド+",
+  "wp.title": "壁紙ギャラリー", "wp.sub": "遊戯王の高画質壁紙・アートワーク・キャラクター画像 {n} 枚を収録。検索とデバイス絞り込み対応",
+  "wp.searchPh": "タグを検索：キャラ / モンスター / テーマ…",
+  "wp.deviceAll": "すべて", "wp.devicePc": "PC 壁紙", "wp.deviceMobile": "スマホ壁紙",
+  "wp.catAll": "すべて", "wp.catWallpaper": "壁紙", "wp.catArtwork": "アートワーク", "wp.catCharacter": "キャラクター",
+  "wp.sortHot": "人気順", "wp.sortNew": "新着順", "wp.sortRes": "解像度順",
+  "wp.matched": "{n} 枚", "wp.empty": "該当する壁紙がありません。キーワードを変えてみてください",
+  "wp.download": "元画像をダウンロード", "wp.source": "出典ページ", "wp.favorites": "お気に入り",
+  "wp.hotTags": "人気タグ",
   "footer.copy": "カード画像の著作権は KONAMI に帰属します。本サイトは学習・交流用です",
   "fmt.ocgOnly": "OCG 限定", "fmt.tcgOnly": "TCG 限定",
 };
 
 const EN: Record<UIKey, string> = {
   "nav.search": "Cards", "nav.archetypes": "Archetypes", "nav.sets": "Sets",
-  "nav.maker": "Card Maker", "nav.deck": "Deck Builder", "nav.share": "Share Image",
+  "nav.maker": "Card Maker", "nav.deck": "Deck Builder", "nav.share": "Share Image", "nav.wallpapers": "Wallpapers",
   "common.search": "Search", "common.retry": "Retry", "common.prev": "Prev", "common.next": "Next",
   "common.viewAll": "View all →", "common.empty": "No cards matched. Try different filters",
   "common.searchPlaceholder": "Search card name / text…", "common.cards": "cards",
@@ -146,6 +163,14 @@ const EN: Record<UIKey, string> = {
   "deck.importYdk": "Import YDK", "deck.pasteImport": "Paste import", "deck.exportYdk": "Export YDK",
   "deck.genImage": "Deck image", "deck.generating": "Generating…", "deck.copyShare": "Copy share link", "deck.clear": "Clear",
   "deck.sideAdd": "Side+",
+  "wp.title": "Wallpaper Gallery", "wp.sub": "{n} curated HD Yu-Gi-Oh! wallpapers, artworks and character images — searchable, PC & mobile",
+  "wp.searchPh": "Search tags: character / monster / archetype…",
+  "wp.deviceAll": "All devices", "wp.devicePc": "Desktop", "wp.deviceMobile": "Mobile",
+  "wp.catAll": "All", "wp.catWallpaper": "Wallpapers", "wp.catArtwork": "Artworks", "wp.catCharacter": "Characters",
+  "wp.sortHot": "Popular", "wp.sortNew": "Newest", "wp.sortRes": "Resolution",
+  "wp.matched": "{n} wallpapers", "wp.empty": "No wallpapers matched. Try another keyword",
+  "wp.download": "Download original", "wp.source": "Source page", "wp.favorites": "favorites",
+  "wp.hotTags": "Popular tags",
   "footer.copy": "Card images © KONAMI. This site is for learning and communication only",
   "fmt.ocgOnly": "OCG only", "fmt.tcgOnly": "TCG only",
 };

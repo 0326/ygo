@@ -14,6 +14,8 @@ import { Sets, SetDetail } from "./pages/Sets";
 const CardMaker = lazy(() => import("./pages/CardMaker"));
 const ShareImage = lazy(() => import("./pages/ShareImage"));
 const DeckBuilder = lazy(() => import("./pages/DeckBuilder"));
+// M9 壁纸图库按需加载
+const Wallpapers = lazy(() => import("./pages/Wallpapers"));
 
 export default function App() {
   return (
@@ -32,6 +34,7 @@ export default function App() {
             <Route path="/maker" element={<CardMaker />} />
             <Route path="/share" element={<ShareImage />} />
             <Route path="/deck" element={<DeckBuilder />} />
+            <Route path="/wallpapers" element={<Wallpapers />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>
