@@ -36,8 +36,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
       e.preventDefault();
       const input = document.querySelector<HTMLInputElement>(".searchbar input");
-      if (input) input.focus();
-      else navigate("/search");
+      if (input) {
+        input.focus();
+      } else {
+        navigate("/search");
+        // 等路由渲染完成后聚焦新页面的搜索框
+        setTimeout(() => document.querySelector<HTMLInputElement>(".searchbar input")?.focus(), 100);
+      }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
