@@ -20,6 +20,23 @@ const cnMap = new Map();
 for (const r of JSON.parse(cnRaw)) cnMap.set(r.id, { name: r.name, desc: r.desc });
 console.log(`  ${cnMap.size} CN texts`);
 
+// ---- 1b. 读取 JA 文本 (ygopro ja-JP cdb，M7 多语言) ----
+console.log("reading cdb (JA names/effects)...");
+const jaRaw = execFileSync(
+  "sqlite3",
+  [`${ROOT}data/cards-ja.cdb`, "-json", "SELECT id,name,desc FROM texts"],
+  { maxBuffer: 1 << 30 }
+).toString();
+const jaMap = new Map();
+for (const r of JSON.parse(jaRaw)) jaMap.set(r.id, { name: r.name, desc: r.desc });
+console.log(`  ${jaMap.size} JA texts`);
+
+// ---- 1c. 赛制归属 (M7)：ygoprodeck misc_info.formats -> "ocg,tcg,md" ----
+const formatsMap = (() => {
+  try { return JSON.parse(readFileSync(`${ROOT}data/formats.json`, "utf8")); }
+  catch { return {}; }
+})();
+
 // ---- 2. 读取 YGOPRODeck ----
 console.log("reading ygoprodeck dump...");
 const ygo = JSON.parse(readFileSync(`${ROOT}data/ygoprodeck-full.json`, "utf8")).data;
@@ -58,6 +75,28 @@ function splitPendulum(desc, isPend) {
   }
   // 没有显式分隔符：整段视为怪兽效果，灵摆侧留空
   return { effect: stripScale(desc), pend: null };
+}
+
+// 灵摆卡 JA desc 拆分：【Ｐスケール：青N／赤N】 <灵摆效果> 【モンスター効果】 <怪兽效果>
+function splitPendulumJa(desc, isPend) {
+  if (!desc) return { effect: null, pend: null };
+  if (!isPend) return { effect: desc, pend: null };
+  const strip = (s) => s.replace(/^\s*【Ｐスケール[^】]*】\s*\n?/, "").trim();
+  const m = desc.split(/【モンスター効果】\s*\n?/);
+  if (m.length >= 2) return { effect: m.slice(1).join("\n").trim(), pend: strip(m[0]) };
+  return { effect: strip(desc), pend: null };
+}
+
+// 灵摆卡 EN desc 拆分：[ Pendulum Effect ] ... [ Monster Effect / Flavor Text ] ...
+function splitPendulumEn(desc, isPend) {
+  if (!desc) return { effect: null, pend: null };
+  if (!isPend) return { effect: desc, pend: null };
+  const parts = desc.split(/\[\s*(?:Monster Effect|Flavor Text)\s*\]\s*\n?/);
+  if (parts.length >= 2) {
+    const pend = parts[0].replace(/^\s*\[\s*Pendulum Effect\s*\]\s*\n?/, "").trim();
+    return { effect: parts.slice(1).join("\n").trim(), pend: pend || null };
+  }
+  return { effect: desc.trim(), pend: null };
 }
 
 // Master Duel 罕贵（P1.1）：ygoprodeck misc_info.md_rarity → MD 代号
@@ -105,11 +144,14 @@ for (const c of ygo) {
     archId = a.id;
   }
   const isPend = c.scale !== undefined && c.scale !== null;
+  const ja = jaMap.get(c.id);
   const { effect, pend } = splitPendulum(cn?.desc || c.desc, isPend);
+  const { effect: effectJa, pend: pendJa } = splitPendulumJa(ja?.desc, isPend);
+  const { effect: effectEn, pend: pendEn } = splitPendulumEn(c.desc, isPend);
   cards.push({
     id: c.id,
     cn_name: cn?.name || c.name,
-    jp_name: null,
+    jp_name: ja?.name || null,
     en_name: c.name,
     card_type: ct,
     frame: baseFrame(c.frameType),
@@ -123,6 +165,11 @@ for (const c of ygo) {
     def: num(c.def),
     effect_cn: effect,
     pendulum_effect_cn: pend,
+    effect_jp: effectJa,
+    pendulum_effect_jp: pendJa,
+    effect_en: effectEn,
+    pendulum_effect_en: pendEn,
+    formats: formatsMap[c.id] || null,
     subtypes: ct === "monster" ? subtypesOf(c) : null,
     md_rarity: MD_RARITY_CODE[mdRarityMap[c.id]] || null,
     archetype_id: archId,
@@ -199,15 +246,17 @@ const archetypes = [...archIndex.values()].map((a) => {
   return { id: a.id, cn_name: cn, en_name: a.en_name, cover_card_id: a.cover, card_count: a.count };
 });
 
-// 双字 CJK 搜索的 bigram 索引（P1.4）：把 cn_name 拆成相邻二元组
+// 双字 CJK 搜索的 bigram 索引（P1.4）：把 cn_name/jp_name 拆成相邻二元组（M7 加入日文，含假名）
 const bigrams = cards.map((c) => {
-  const s = (c.cn_name || "").replace(/\s+/g, "");
-  const parts = [];
-  for (let i = 0; i + 1 < s.length; i++) {
-    const bg = s.slice(i, i + 2);
-    if (/[一-鿿]/.test(bg)) parts.push(bg);
+  const parts = new Set();
+  for (const src of [c.cn_name, c.jp_name]) {
+    const s = (src || "").replace(/\s+/g, "");
+    for (let i = 0; i + 1 < s.length; i++) {
+      const bg = s.slice(i, i + 2);
+      if (/[一-鿿぀-ヿ]/.test(bg)) parts.add(bg);
+    }
   }
-  return { id: c.id, bg: parts.join(" ") };
+  return { id: c.id, bg: [...parts].join(" ") };
 }).filter((b) => b.bg);
 
 console.log(
@@ -238,9 +287,9 @@ function batchInsert(table, cols, rows, rowToVals) {
 
 batchInsert(
   "cards",
-  ["id","cn_name","jp_name","en_name","card_type","frame","attribute","race","level","link_val","link_markers","scale","atk","def","effect_cn","pendulum_effect_cn","subtypes","md_rarity","archetype_id","alias_of","updated_at"],
+  ["id","cn_name","jp_name","en_name","card_type","frame","attribute","race","level","link_val","link_markers","scale","atk","def","effect_cn","pendulum_effect_cn","effect_jp","pendulum_effect_jp","effect_en","pendulum_effect_en","formats","subtypes","md_rarity","archetype_id","alias_of","updated_at"],
   cards,
-  (r) => [r.id,r.cn_name,r.jp_name,r.en_name,r.card_type,r.frame,r.attribute,r.race,r.level,r.link_val,r.link_markers,r.scale,r.atk,r.def,r.effect_cn,r.pendulum_effect_cn,r.subtypes,r.md_rarity,r.archetype_id,r.alias_of,r.updated_at]
+  (r) => [r.id,r.cn_name,r.jp_name,r.en_name,r.card_type,r.frame,r.attribute,r.race,r.level,r.link_val,r.link_markers,r.scale,r.atk,r.def,r.effect_cn,r.pendulum_effect_cn,r.effect_jp,r.pendulum_effect_jp,r.effect_en,r.pendulum_effect_en,r.formats,r.subtypes,r.md_rarity,r.archetype_id,r.alias_of,r.updated_at]
 );
 batchInsert(
   "card_artworks",
@@ -278,7 +327,7 @@ batchInsert(
   bigrams,
   (r) => [r.id, r.bg]
 );
-out.push("INSERT INTO cards_fts(rowid,cn_name,en_name,effect_cn) SELECT id,cn_name,en_name,effect_cn FROM cards;");
+out.push("INSERT INTO cards_fts(rowid,cn_name,jp_name,en_name,effect_cn) SELECT id,cn_name,jp_name,en_name,effect_cn FROM cards;");
 
 writeFileSync(`${ROOT}data/seed.sql`, out.join("\n"));
 console.log(`wrote data/seed.sql (${(out.join("\n").length / 1e6).toFixed(1)} MB)`);

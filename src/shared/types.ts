@@ -23,9 +23,13 @@ export type MonsterSubtype =
 // Master Duel 罕贵代号
 export type MdRarity = "N" | "R" | "SR" | "UR";
 
+// 界面/资料语言（M7 多语言）
+export type Lang = "cn" | "jp" | "en";
+
 export interface CardSummary {
   id: number;
   cn_name: string;
+  jp_name: string | null;
   en_name: string;
   card_type: CardType;
   frame: Frame;
@@ -40,6 +44,7 @@ export interface CardSummary {
   subtypes: MonsterSubtype[] | null;  // 调整/反转/灵魂/同盟/二重/卡通
   ban: BanInfo | null;                // 各赛制禁限状态（无则不入表）
   md_rarity: MdRarity | null;         // Master Duel 罕贵（来源 ygoprodeck）
+  formats: BanFormat[] | null;        // 赛制归属 ocg/tcg/md（M7，来源 ygoprodeck misc_info）
   thumb_url: string;
 }
 
@@ -68,6 +73,10 @@ export interface ArchetypeRef {
 export interface CardDetail extends CardSummary {
   effect_cn: string;
   pendulum_effect_cn: string | null;  // 灵摆效果（仅灵摆卡，与怪兽效果分开）
+  effect_jp: string | null;           // 日文效果（M7）
+  pendulum_effect_jp: string | null;
+  effect_en: string | null;           // 英文效果（M7）
+  pendulum_effect_en: string | null;
   artworks: Artwork[];
   prints: Print[];
   archetype: ArchetypeRef | null;

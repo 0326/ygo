@@ -28,6 +28,11 @@ CREATE TABLE cards (
   def          INTEGER,                     -- -1 表示 ?
   effect_cn    TEXT,                         -- 怪兽效果/卡片效果（灵摆卡为怪兽侧）
   pendulum_effect_cn TEXT,                   -- 灵摆效果（仅灵摆卡）
+  effect_jp    TEXT,                         -- 日文效果（来源 ygopro ja-JP cdb）
+  pendulum_effect_jp TEXT,
+  effect_en    TEXT,                         -- 英文效果（来源 ygoprodeck desc）
+  pendulum_effect_en TEXT,
+  formats      TEXT,                         -- 赛制归属: "ocg,tcg,md" 逗号串（来源 ygoprodeck misc_info.formats）
   subtypes     TEXT,                         -- JSON 数组: ["tuner","flip",...]
   md_rarity    TEXT,                         -- Master Duel 罕贵: N|R|SR|UR (来源 ygoprodeck)
   archetype_id INTEGER,
@@ -91,12 +96,12 @@ CREATE TABLE banlist (
 );
 CREATE INDEX idx_banlist_card ON banlist(card_id);
 
--- FTS5 全文搜索：覆盖中文名 + 效果文本（内容表外置）
+-- FTS5 全文搜索：覆盖中/日/英名 + 中文效果文本（内容表外置）
 CREATE VIRTUAL TABLE cards_fts USING fts5(
-  cn_name, en_name, effect_cn,
+  cn_name, jp_name, en_name, effect_cn,
   content='cards', content_rowid='id',
   tokenize='trigram'
 );
 
--- 双字 CJK 检索（trigram 需 ≥3 字）：cn_name 的相邻二元组，独立 FTS（rowid=卡密）
+-- 双字 CJK 检索（trigram 需 ≥3 字）：cn_name/jp_name 的相邻二元组，独立 FTS（rowid=卡密）
 CREATE VIRTUAL TABLE cards_bigram USING fts5(bg, tokenize='unicode61');

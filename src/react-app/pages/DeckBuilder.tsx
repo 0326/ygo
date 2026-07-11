@@ -10,15 +10,17 @@ import {
 import { SearchBar } from "../components/SearchControls";
 import { AttributeIcon, BanBadge } from "../components/badges";
 import { Spinner } from "../components/common";
-import { frameColor, ATTR_CN, ATTR_COLOR, BAN_FORMAT_CN, BAN_LIMIT } from "../lib/labels";
+import { frameColor, ATTR_COLOR, BAN_FORMAT_CN, BAN_LIMIT } from "../lib/labels";
+import { useLang, cardName, attrName } from "../lib/i18n";
 import {
   composeShareImage, exportShareImage, type ShareItem,
 } from "../canvas/ShareImageComposer";
 import "./DeckBuilder.css";
 
-const ZONE_CN: Record<Zone, string> = { main: "主卡组", extra: "额外卡组", side: "副卡组" };
+const ZONE_KEY = { main: "deck.main", extra: "deck.extra", side: "deck.side" } as const;
 
 export default function DeckBuilder() {
+  const { lang, t } = useLang();
   const [sp, setSp] = useSearchParams();
   const [deck, setDeck] = useState<Deck>(emptyDeck);
   const cache = useRef<Map<number, CardSummary>>(new Map());
@@ -195,19 +197,19 @@ export default function DeckBuilder() {
       <div className="container">
         <div className="page-head">
           <div>
-            <h1>组卡器</h1>
-            <div className="sub">点击 / 拖拽组卡 · 禁限规则校验 · 导出 YDK + 卡组一图流 + 分享链接</div>
+            <h1>{t("deck.title")}</h1>
+            <div className="sub">{t("deck.sub")}</div>
           </div>
         </div>
 
         {/* 校验 + 操作栏 */}
         <div className="deck-bar">
           <div className="deck-counts">
-            <Count label="主卡组" n={deck.main.length} min={LIMITS.mainMin} max={LIMITS.mainMax} />
-            <Count label="额外" n={deck.extra.length} max={LIMITS.extraMax} />
-            <Count label="副卡组" n={deck.side.length} max={LIMITS.sideMax} />
+            <Count label={t("deck.main")} n={deck.main.length} min={LIMITS.mainMin} max={LIMITS.mainMax} />
+            <Count label={t("deck.extraShort")} n={deck.extra.length} max={LIMITS.extraMax} />
+            <Count label={t("deck.side")} n={deck.side.length} max={LIMITS.sideMax} />
             <span className={`deck-valid ${v.ok ? "ok" : "bad"}`} title={v.errors.join("；")}>
-              {v.ok ? "✓ 合法卡组" : `✗ ${v.errors[0]}`}
+              {v.ok ? t("deck.valid") : `✗ ${v.errors[0]}`}
             </span>
           </div>
           <div className="deck-actions">
@@ -218,12 +220,12 @@ export default function DeckBuilder() {
                 </button>
               ))}
             </span>
-            <button className="btn" onClick={() => fileRef.current?.click()}>导入 YDK</button>
-            <button className="btn" onClick={pasteYdk}>粘贴导入</button>
-            <button className="btn" onClick={downloadYdk}>导出 YDK</button>
-            <button className="btn" onClick={genImage} disabled={busyImg}>{busyImg ? "生成中…" : "生成卡组图"}</button>
-            <button className="btn" onClick={copyShare}>复制分享链接</button>
-            <button className="btn btn-ghost" onClick={clear}>清空</button>
+            <button className="btn" onClick={() => fileRef.current?.click()}>{t("deck.importYdk")}</button>
+            <button className="btn" onClick={pasteYdk}>{t("deck.pasteImport")}</button>
+            <button className="btn" onClick={downloadYdk}>{t("deck.exportYdk")}</button>
+            <button className="btn" onClick={genImage} disabled={busyImg}>{busyImg ? t("deck.generating") : t("deck.genImage")}</button>
+            <button className="btn" onClick={copyShare}>{t("deck.copyShare")}</button>
+            <button className="btn btn-ghost" onClick={clear}>{t("deck.clear")}</button>
             <input ref={fileRef} type="file" accept=".ydk,text/plain" hidden onChange={onPickFile} />
           </div>
         </div>
@@ -231,12 +233,12 @@ export default function DeckBuilder() {
         <div className="deck-layout">
           {/* 卡池 */}
           <aside className="deck-pool">
-            <SearchBar value={q} onChange={setQ} onSubmit={submitSearch} placeholder="搜索卡片加入卡组…" />
-            <div className="pool-hint muted">点击加入（额外卡框自动归位） · Shift+点击 / 副+ 进副卡组 · 可拖拽到任意区</div>
+            <SearchBar value={q} onChange={setQ} onSubmit={submitSearch} placeholder={t("deck.searchPh")} />
+            <div className="pool-hint muted">{t("deck.hint")}</div>
             {searching ? <Spinner /> : searchErr ? (
               <div className="pool-err">
-                <div>搜索失败：{searchErr}</div>
-                <button className="btn" onClick={submitSearch}>重试</button>
+                <div>{t("deck.searchFail")}{searchErr}</div>
+                <button className="btn" onClick={submitSearch}>{t("common.retry")}</button>
               </div>
             ) : (
               <div className="pool-grid">
@@ -244,6 +246,7 @@ export default function DeckBuilder() {
                   const n = countOf(deck, c.id);
                   const st = c.ban?.[format];
                   const max = st != null ? BAN_LIMIT[st] : LIMITS.perCard;
+                  const cname = cardName(c, lang);
                   return (
                     <div
                       key={c.id} className="pool-card" role="button" tabIndex={0}
@@ -251,21 +254,21 @@ export default function DeckBuilder() {
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", String(c.id))}
                       onClick={(e) => add(c, e.shiftKey ? "side" : undefined)}
                       onKeyDown={(e) => { if (e.key === "Enter") add(c, e.shiftKey ? "side" : undefined); }}
-                      title={`加入 ${c.cn_name}`}
+                      title={cname}
                     >
-                      <img src={c.thumb_url} alt={c.cn_name} loading="lazy" />
+                      <img src={c.thumb_url} alt={cname} loading="lazy" />
                       {c.ban && <span className="pool-ban"><BanBadge ban={c.ban} format={format} dot /></span>}
                       {n > 0 && <span className="pool-count">{n}/{max}</span>}
                       <button
                         className="pool-side-add"
                         onClick={(e) => { e.stopPropagation(); add(c, "side"); }}
-                        title={`「${c.cn_name}」加入副卡组`}
-                      >副+</button>
-                      <span className="pool-name">{c.cn_name}</span>
+                        title={`${cname} → ${t("deck.side")}`}
+                      >{t("deck.sideAdd")}</button>
+                      <span className="pool-name">{cname}</span>
                     </div>
                   );
                 })}
-                {!results.length && <div className="muted" style={{ padding: 20 }}>搜索卡片以构筑卡组</div>}
+                {!results.length && <div className="muted" style={{ padding: 20 }}>{t("deck.emptyPool")}</div>}
               </div>
             )}
           </aside>
@@ -308,6 +311,7 @@ export default function DeckBuilder() {
 }
 
 function DeckStatsPanel({ stats, mainSize }: { stats: ReturnType<typeof deckStats>; mainSize: number }) {
+  const { lang } = useLang();
   const maxCurve = Math.max(1, ...stats.levelCurve.map((c) => c.count));
   const attrs = Object.entries(stats.byAttribute).sort((a, b) => b[1] - a[1]);
   // 起手概率（先攻 5 张）：n-of 卡至少摸到 1 张
@@ -326,7 +330,7 @@ function DeckStatsPanel({ stats, mainSize }: { stats: ReturnType<typeof deckStat
           <div className="ds-attrs">
             {attrs.map(([a, n]) => (
               <span key={a} className="ds-attr" style={{ borderColor: ATTR_COLOR[a] || "#888" }}>
-                {ATTR_CN[a] || a} {n}
+                {attrName(a, lang) || a} {n}
               </span>
             ))}
           </div>
@@ -380,6 +384,7 @@ function DeckZone({
   onRemove: (z: Zone, id: number) => void; onAdd: (z: Zone, id: number) => void; format: BanFormat;
 }) {
   const ids = deck[zone];
+  const { lang, t } = useLang();
   const [hover, setHover] = useState(false);
   const depth = useRef(0); // dragenter/leave 在子元素间冒泡，用计数器判定真正离开
   return (
@@ -396,8 +401,8 @@ function DeckZone({
       }}
     >
       <div className="zone-head">
-        <h3>{ZONE_CN[zone]}</h3>
-        <span className="muted">{ids.length} 张</span>
+        <h3>{t(ZONE_KEY[zone])}</h3>
+        <span className="muted">{ids.length} {t("common.cards")}</span>
       </div>
       <div className="zone-grid">
         {ids.map((id, i) => {
@@ -407,16 +412,16 @@ function DeckZone({
             <button
               key={`${id}-${i}`} className="zone-card"
               onClick={() => onRemove(zone, id)}
-              title={c ? `移除 ${c.cn_name}` : String(id)}
+              title={c ? cardName(c, lang) : String(id)}
               style={fc ? { boxShadow: `0 0 0 1px ${fc.base}66` } : undefined}
             >
-              {c ? <img src={c.thumb_url} alt={c.cn_name} loading="lazy" /> : <span className="zone-id">{id}</span>}
+              {c ? <img src={c.thumb_url} alt={cardName(c, lang)} loading="lazy" /> : <span className="zone-id">{id}</span>}
               {c?.attribute && <span className="zone-attr"><AttributeIcon attr={c.attribute} size={16} /></span>}
               {c?.ban && <span className="zone-ban"><BanBadge ban={c.ban} format={format} dot /></span>}
             </button>
           );
         })}
-        {!ids.length && <div className="zone-empty muted">空</div>}
+        {!ids.length && <div className="zone-empty muted">{t("deck.emptyZone")}</div>}
       </div>
     </div>
   );

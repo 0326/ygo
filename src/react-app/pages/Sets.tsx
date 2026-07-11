@@ -4,8 +4,10 @@ import { listSets, getSet } from "../lib/api";
 import type { SetSummary, CardSummary } from "../../shared/types";
 import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, ErrorBox } from "../components/common";
+import { useLang } from "../lib/i18n";
 
 export function Sets() {
+  const { t } = useLang();
   const [sets, setSets] = useState<SetSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [kw, setKw] = useState("");
@@ -19,10 +21,10 @@ export function Sets() {
   return (
     <div className="container page fade-in">
       <div className="page-head">
-        <div><h1>卡包</h1><div className="sub">按发售时间倒序 · 共收录 {sets.length} 个卡包</div></div>
+        <div><h1>{t("sets.title")}</h1><div className="sub">{t("sets.sub", { n: sets.length })}</div></div>
         <input
           style={{ maxWidth: 260, padding: "10px 14px", background: "var(--bg-2)", border: "1px solid var(--line-strong)", borderRadius: "var(--radius-sm)", color: "var(--text-0)", fontSize: 14, outline: "none" }}
-          placeholder="搜索卡包…" value={kw} onChange={(e) => setKw(e.target.value)}
+          placeholder={t("sets.searchPh")} value={kw} onChange={(e) => setKw(e.target.value)}
         />
       </div>
       {loading ? <Spinner /> : (
@@ -37,7 +39,7 @@ export function Sets() {
               </div>
               <div className="set-meta">
                 <b>{s.en_name}</b>
-                <div className="muted">{s.code} · {s.card_count} 张</div>
+                <div className="muted">{s.code} · {s.card_count} {t("common.cards")}</div>
               </div>
             </Link>
           ))}
@@ -49,6 +51,7 @@ export function Sets() {
 
 export function SetDetail() {
   const { code } = useParams();
+  const { t } = useLang();
   const [data, setData] = useState<{ set: SetSummary; cards: CardSummary[] } | null>(null);
   const [err, setErr] = useState("");
   useEffect(() => {
@@ -62,9 +65,9 @@ export function SetDetail() {
     <div className="container page fade-in">
       <div className="page-head">
         <div>
-          <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}><Link to="/sets">卡包</Link></div>
+          <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}><Link to="/sets">{t("sets.title")}</Link></div>
           <h1>{data.set.en_name}</h1>
-          <div className="sub">{data.set.code} · {data.cards.length} 张{data.set.release_date ? ` · ${new Date(data.set.release_date * 1000).toLocaleDateString("zh-CN")}` : ""}</div>
+          <div className="sub">{data.set.code} · {data.cards.length} {t("common.cards")}{data.set.release_date ? ` · ${new Date(data.set.release_date * 1000).toLocaleDateString()}` : ""}</div>
         </div>
       </div>
       <CardGrid cards={data.cards} showAttr />

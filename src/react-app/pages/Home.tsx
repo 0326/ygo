@@ -5,9 +5,11 @@ import type { ArchetypeSummary, CardSummary } from "../../shared/types";
 import { CardGrid } from "../components/CardThumbnail";
 import { SeriesGrid } from "./Archetypes";
 import { SearchBar } from "../components/SearchControls";
+import { useLang } from "../lib/i18n";
 
 export default function Home() {
   const nav = useNavigate();
+  const { t } = useLang();
   const [q, setQ] = useState("");
   const [stats, setStats] = useState<{ cards: number; archetypes: number; artworks: number; sets: number } | null>(null);
   const [series, setSeries] = useState<ArchetypeSummary[]>([]);
@@ -31,18 +33,18 @@ export default function Home() {
   return (
     <div className="container page fade-in">
       <section className="hero">
-        <h1>卡图最美 · 查卡最爽<br /><span className="g">最懂收藏党</span>的游戏王卡库</h1>
-        <p>全网最完整的简中卡图与系列图鉴，加上让创作者上瘾的在线制卡器与分享长图工具。</p>
+        <h1>{t("home.heroTitle1")}<br /><span className="g">{t("home.heroTitle2")}</span>{t("home.heroTitle3")}</h1>
+        <p>{t("home.heroSub")}</p>
         <div className="cta">
-          <Link to="/search" className="btn btn-primary">开始查卡</Link>
-          <Link to="/archetypes" className="btn">逛系列图鉴</Link>
-          <Link to="/maker" className="btn btn-ghost">试试制卡器 →</Link>
+          <Link to="/search" className="btn btn-primary">{t("home.ctaSearch")}</Link>
+          <Link to="/archetypes" className="btn">{t("home.ctaArchetypes")}</Link>
+          <Link to="/maker" className="btn btn-ghost">{t("home.ctaMaker")}</Link>
         </div>
         <div className="hero-stats">
-          <div className="stat"><b>{fmt(stats?.cards)}</b><span>收录卡片</span></div>
-          <div className="stat"><b>{fmt(stats?.artworks)}</b><span>卡图(含异画)</span></div>
-          <div className="stat"><b>{fmt(stats?.archetypes)}</b><span>系列</span></div>
-          <div className="stat"><b>{fmt(stats?.sets)}</b><span>卡包</span></div>
+          <div className="stat"><b>{fmt(stats?.cards)}</b><span>{t("home.statCards")}</span></div>
+          <div className="stat"><b>{fmt(stats?.artworks)}</b><span>{t("home.statArtworks")}</span></div>
+          <div className="stat"><b>{fmt(stats?.archetypes)}</b><span>{t("home.statArchetypes")}</span></div>
+          <div className="stat"><b>{fmt(stats?.sets)}</b><span>{t("home.statSets")}</span></div>
         </div>
       </section>
 
@@ -53,21 +55,21 @@ export default function Home() {
       {hero.length > 0 && (
         <>
           <div className="section-head">
-            <h2>热门卡片</h2>
-            <Link to="/search">查看全部 →</Link>
+            <h2>{t("home.hotCards")}</h2>
+            <Link to="/search">{t("common.viewAll")}</Link>
           </div>
           <CardGrid cards={hero} showAttr />
         </>
       )}
 
       <div className="section-head">
-        <h2>热门系列图鉴</h2>
-        <Link to="/archetypes">查看全部 →</Link>
+        <h2>{t("home.hotArchetypes")}</h2>
+        <Link to="/archetypes">{t("common.viewAll")}</Link>
       </div>
       {seriesErr && !series.length ? (
         <div className="muted" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0" }}>
-          <span>系列加载失败：{seriesErr}</span>
-          <button className="btn" onClick={loadSeries}>重试</button>
+          <span>{t("home.seriesLoadFail")}{seriesErr}</span>
+          <button className="btn" onClick={loadSeries}>{t("common.retry")}</button>
         </div>
       ) : (
         <SeriesGrid items={series} />

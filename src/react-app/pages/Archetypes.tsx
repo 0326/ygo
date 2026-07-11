@@ -3,28 +3,35 @@ import { Link } from "react-router-dom";
 import { listArchetypes } from "../lib/api";
 import type { ArchetypeSummary } from "../../shared/types";
 import { Spinner } from "../components/common";
+import { useLang } from "../lib/i18n";
 
 export function SeriesGrid({ items }: { items: ArchetypeSummary[] }) {
+  const { lang, t } = useLang();
   return (
     <div className="series-grid">
-      {items.map((a) => (
-        <Link key={a.id} to={`/archetypes/${a.id}`} className="series-card">
-          {a.cover_thumb_url && (
-            <div className="bg" style={{ backgroundImage: `url(${a.cover_thumb_url})` }} />
-          )}
-          <div className="veil" />
-          <div className="meta">
-            <h3>{a.cn_name}</h3>
-            {a.en_name !== a.cn_name && <div className="en">{a.en_name}</div>}
-            <div className="cnt">{a.card_count} 张</div>
-          </div>
-        </Link>
-      ))}
+      {items.map((a) => {
+        const name = lang === "cn" ? a.cn_name : a.en_name;
+        const sub = lang === "cn" ? a.en_name : a.cn_name;
+        return (
+          <Link key={a.id} to={`/archetypes/${a.id}`} className="series-card">
+            {a.cover_thumb_url && (
+              <div className="bg" style={{ backgroundImage: `url(${a.cover_thumb_url})` }} />
+            )}
+            <div className="veil" />
+            <div className="meta">
+              <h3>{name}</h3>
+              {sub !== name && <div className="en">{sub}</div>}
+              <div className="cnt">{a.card_count} {t("common.cards")}</div>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }
 
 export default function Archetypes() {
+  const { t } = useLang();
   const [all, setAll] = useState<ArchetypeSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [kw, setKw] = useState("");
@@ -43,8 +50,8 @@ export default function Archetypes() {
     <div className="container page fade-in">
       <div className="page-head">
         <div>
-          <h1>系列图鉴</h1>
-          <div className="sub">按系列（archetype）浏览，{all.length} 个系列 · 天生适合截图转发</div>
+          <h1>{t("arch.title")}</h1>
+          <div className="sub">archetype · {all.length}</div>
         </div>
         <input
           style={{

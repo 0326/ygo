@@ -2,23 +2,26 @@
 import type {
   CardSummary, CardDetail, Artwork, Print, ArchetypeSummary,
   SearchResponse, SetSummary, Frame, Attribute, CardType, LinkMarker,
-  MonsterSubtype, BanInfo, BanStatus, MdRarity,
+  MonsterSubtype, BanInfo, BanStatus, MdRarity, BanFormat,
 } from "../../shared/types";
 import { thumbUrl, fullUrl } from "./images";
 
 interface CardRow {
-  id: number; cn_name: string; en_name: string; card_type: string;
+  id: number; cn_name: string; jp_name: string | null; en_name: string; card_type: string;
   frame: string; attribute: string | null; race: string | null;
   level: number | null; link_val: number | null; link_markers: string | null;
   scale: number | null; atk: number | null; def: number | null;
   effect_cn?: string; pendulum_effect_cn?: string | null;
+  effect_jp?: string | null; pendulum_effect_jp?: string | null;
+  effect_en?: string | null; pendulum_effect_en?: string | null;
+  formats?: string | null;
   subtypes?: string | null; md_rarity?: string | null; archetype_id?: number | null;
   default_key?: string | null;
   ban_ocg?: number | null; ban_tcg?: number | null; ban_md?: number | null;
 }
 
-const COLS = `c.id,c.cn_name,c.en_name,c.card_type,c.frame,c.attribute,c.race,
-  c.level,c.link_val,c.link_markers,c.scale,c.atk,c.def,c.subtypes,c.md_rarity,c.archetype_id,
+const COLS = `c.id,c.cn_name,c.jp_name,c.en_name,c.card_type,c.frame,c.attribute,c.race,
+  c.level,c.link_val,c.link_markers,c.scale,c.atk,c.def,c.formats,c.subtypes,c.md_rarity,c.archetype_id,
   (SELECT image_key FROM card_artworks a WHERE a.card_id=c.id ORDER BY a.is_default DESC, a.id LIMIT 1) AS default_key,
   (SELECT status FROM banlist b WHERE b.card_id=c.id AND b.format='ocg') AS ban_ocg,
   (SELECT status FROM banlist b WHERE b.card_id=c.id AND b.format='tcg') AS ban_tcg,
@@ -37,6 +40,7 @@ function toSummary(r: CardRow): CardSummary {
   return {
     id: r.id,
     cn_name: r.cn_name,
+    jp_name: r.jp_name ?? null,
     en_name: r.en_name,
     card_type: r.card_type as CardType,
     frame: r.frame as Frame,
@@ -51,6 +55,7 @@ function toSummary(r: CardRow): CardSummary {
     subtypes: r.subtypes ? (JSON.parse(r.subtypes) as MonsterSubtype[]) : null,
     ban: toBan(r),
     md_rarity: (r.md_rarity as MdRarity) ?? null,
+    formats: r.formats ? (r.formats.split(",") as BanFormat[]) : null,
     thumb_url: thumbUrl(key),
   };
 }
@@ -63,6 +68,7 @@ export async function search(
     level_min?: string; level_max?: string;
     atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
     link?: string; scale?: string; subtype?: string; md_rarity?: string;
+    format?: string;
     page: number; size: number; sort?: string;
   }
 ): Promise<SearchResponse> {
@@ -126,6 +132,13 @@ export async function search(
     where.push("c.archetype_id = ?");
     binds.push(parseInt(params.archetype, 10));
   }
+  // 赛制归属（M7）：ocg / tcg / md，逗号分隔取交集
+  if (params.format) {
+    for (const f of params.format.split(",").map((x) => x.trim()).filter((x) => ["ocg", "tcg", "md"].includes(x))) {
+      where.push("c.formats LIKE ?");
+      binds.push(`%${f}%`);
+    }
+  }
 
   const whereSql = where.length ? "WHERE " + where.join(" AND ") : "";
   const order =
@@ -153,7 +166,7 @@ export async function search(
 
 export async function cardDetail(db: D1Database, id: number): Promise<CardDetail | null> {
   const row = await db
-    .prepare(`SELECT ${COLS}, c.effect_cn, c.pendulum_effect_cn FROM cards c WHERE c.id = ?`)
+    .prepare(`SELECT ${COLS}, c.effect_cn, c.pendulum_effect_cn, c.effect_jp, c.pendulum_effect_jp, c.effect_en, c.pendulum_effect_en FROM cards c WHERE c.id = ?`)
     .bind(id)
     .first<CardRow>();
   if (!row) return null;
@@ -188,6 +201,10 @@ export async function cardDetail(db: D1Database, id: number): Promise<CardDetail
     ...toSummary(row),
     effect_cn: row.effect_cn || "",
     pendulum_effect_cn: row.pendulum_effect_cn ?? null,
+    effect_jp: row.effect_jp ?? null,
+    pendulum_effect_jp: row.pendulum_effect_jp ?? null,
+    effect_en: row.effect_en ?? null,
+    pendulum_effect_en: row.pendulum_effect_en ?? null,
     artworks,
     prints,
     archetype,

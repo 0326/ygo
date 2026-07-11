@@ -21,6 +21,7 @@ export interface SearchParams {
   level_min?: string; level_max?: string;
   atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
   link?: string; scale?: string; subtype?: string; md_rarity?: string;
+  format?: string;
   sort?: string; page?: number; size?: number;
 }
 

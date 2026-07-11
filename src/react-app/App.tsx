@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { LanguageProvider } from "./lib/i18n";
 import { AppShell } from "./components/AppShell";
 import { Spinner } from "./components/common";
 import Home from "./pages/Home";
@@ -17,6 +18,7 @@ const DeckBuilder = lazy(() => import("./pages/DeckBuilder"));
 export default function App() {
   return (
     <BrowserRouter>
+      <LanguageProvider>
       <AppShell>
         <Suspense fallback={<div className="container page"><Spinner /></div>}>
           <Routes>
@@ -34,6 +36,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </AppShell>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }

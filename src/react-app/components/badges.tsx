@@ -1,18 +1,22 @@
-import { ATTR_CN, ATTR_COLOR, frameColor, BAN_CN, BAN_COLOR, BAN_FORMAT_CN, SUBTYPE_CN, MD_RARITY_CN, MD_RARITY_COLOR } from "../lib/labels";
+import { ATTR_CN, ATTR_COLOR, frameColor, BAN_COLOR, BAN_FORMAT_CN, MD_RARITY_CN, MD_RARITY_COLOR } from "../lib/labels";
+import { useLang, attrName, banName, subtypeName } from "../lib/i18n";
 import type { LinkMarker, BanInfo, BanFormat, BanStatus, MonsterSubtype, MdRarity } from "../../shared/types";
 
 export function AttributeIcon({ attr, size = 26 }: { attr: string | null; size?: number }) {
+  const { lang } = useLang();
   if (!attr) return null;
+  // 图标字形：中/日用单字，英文用首字母
+  const glyph = lang === "en" ? attr[0] : (lang === "jp" ? attrName(attr, "jp") : ATTR_CN[attr]) || "?";
   return (
     <span
       className="attr-icon"
-      title={ATTR_CN[attr] ? `${ATTR_CN[attr]}属性` : attr}
+      title={attrName(attr, lang) || attr}
       style={{
         width: size, height: size, fontSize: size * 0.5,
         background: `radial-gradient(circle at 35% 30%, ${ATTR_COLOR[attr] || "#888"}, #00000055)`,
       }}
     >
-      {ATTR_CN[attr] || "?"}
+      {glyph}
     </span>
   );
 }
@@ -57,22 +61,24 @@ export function LinkMarkers({ markers }: { markers: LinkMarker[] }) {
 
 // 禁限角标。优先按指定赛制显示；缩略图上用单色小圆点。
 export function BanBadge({ ban, format = "ocg", dot = false }: { ban: BanInfo | null; format?: BanFormat; dot?: boolean }) {
+  const { lang } = useLang();
   if (!ban) return null;
   const st = ban[format] ?? ban.ocg ?? ban.tcg ?? ban.md;
   if (st == null) return null;
   const color = BAN_COLOR[st as BanStatus];
   if (dot) {
-    return <span className="ban-dot" style={{ background: color }} title={`${BAN_FORMAT_CN[format]} ${BAN_CN[st as BanStatus]}`} />;
+    return <span className="ban-dot" style={{ background: color }} title={`${BAN_FORMAT_CN[format]} ${banName(st as BanStatus, lang)}`} />;
   }
   return (
     <span className="ban-badge" style={{ background: color }}>
-      {BAN_FORMAT_CN[format]}·{BAN_CN[st as BanStatus]}
+      {BAN_FORMAT_CN[format]}·{banName(st as BanStatus, lang)}
     </span>
   );
 }
 
 // 禁限：所有赛制一起展示（详情页用）
 export function BanBadges({ ban }: { ban: BanInfo | null }) {
+  const { lang } = useLang();
   if (!ban) return null;
   const formats = (["ocg", "tcg", "md"] as BanFormat[]).filter((f) => ban[f] != null);
   if (!formats.length) return null;
@@ -80,7 +86,7 @@ export function BanBadges({ ban }: { ban: BanInfo | null }) {
     <span className="ban-badges">
       {formats.map((f) => (
         <span key={f} className="ban-badge" style={{ background: BAN_COLOR[ban[f] as BanStatus] }}>
-          {BAN_FORMAT_CN[f]}·{BAN_CN[ban[f] as BanStatus]}
+          {BAN_FORMAT_CN[f]}·{banName(ban[f] as BanStatus, lang)}
         </span>
       ))}
     </span>
@@ -89,17 +95,19 @@ export function BanBadges({ ban }: { ban: BanInfo | null }) {
 
 // Master Duel 罕贵徽标
 export function MdRarityBadge({ rarity }: { rarity: MdRarity | null }) {
+  const { lang } = useLang();
   if (!rarity) return null;
   return (
     <span className="md-rarity" style={{ background: MD_RARITY_COLOR[rarity], color: rarity === "N" || rarity === "R" ? "#1a1a1a" : "#fff" }}>
-      MD {rarity}<span className="md-rarity-cn">·{MD_RARITY_CN[rarity]}</span>
+      MD {rarity}{lang === "cn" && <span className="md-rarity-cn">·{MD_RARITY_CN[rarity]}</span>}
     </span>
   );
 }
 
 export function SubtypeChips({ subtypes }: { subtypes: MonsterSubtype[] | null }) {
+  const { lang } = useLang();
   if (!subtypes || !subtypes.length) return null;
-  return <>{subtypes.map((s) => <span key={s} className="chip subtype-chip">{SUBTYPE_CN[s]}</span>)}</>;
+  return <>{subtypes.map((s) => <span key={s} className="chip subtype-chip">{subtypeName(s, lang)}</span>)}</>;
 }
 
 export function FrameBadge({ frame, label, pendulum = false }: { frame: string; label: string; pendulum?: boolean }) {

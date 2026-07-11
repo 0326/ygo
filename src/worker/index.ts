@@ -52,6 +52,7 @@ app.get("/api/search", (c) =>
       level_min: q.level_min, level_max: q.level_max,
       atk_min: q.atk_min, atk_max: q.atk_max, def_min: q.def_min, def_max: q.def_max,
       link: q.link, scale: q.scale, subtype: q.subtype, md_rarity: q.md_rarity,
+      format: q.format,
       page: intParam(q.page, 1),
       size: intParam(q.size, 24),
     });

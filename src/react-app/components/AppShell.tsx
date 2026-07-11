@@ -1,15 +1,16 @@
 import { NavLink, Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
+import { useLang, LANGS } from "../lib/i18n";
 
 const links = [
-  { to: "/search", label: "查卡" },
-  { to: "/archetypes", label: "系列图鉴" },
-  { to: "/sets", label: "卡包" },
-  { to: "/maker", label: "制卡器" },
-  { to: "/deck", label: "组卡" },
-  { to: "/share", label: "长图" },
-];
+  { to: "/search", key: "nav.search" },
+  { to: "/archetypes", key: "nav.archetypes" },
+  { to: "/sets", key: "nav.sets" },
+  { to: "/maker", key: "nav.maker" },
+  { to: "/deck", key: "nav.deck" },
+  { to: "/share", key: "nav.share" },
+] as const;
 
 const Icon = ({ d }: { d: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -27,6 +28,7 @@ const ICONS: Record<string, string> = {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
+  const { lang, setLang, t } = useLang();
 
   // 全局快捷键：按 "/" 聚焦当前页搜索框（无搜索框则跳查卡页）
   useEffect(() => {
@@ -56,11 +58,23 @@ export function AppShell({ children }: { children: ReactNode }) {
           <nav>
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "active" : "")}>
-                {l.label}
+                {t(l.key)}
               </NavLink>
             ))}
           </nav>
           <span className="spacer" />
+          <span className="lang-switch">
+            {LANGS.map((l) => (
+              <button
+                key={l.value}
+                className={`lang-btn${lang === l.value ? " on" : ""}`}
+                onClick={() => setLang(l.value)}
+                title={{ cn: "简体中文", jp: "日本語", en: "English" }[l.value]}
+              >
+                {l.label}
+              </button>
+            ))}
+          </span>
         </div>
       </header>
 
@@ -69,7 +83,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <footer className="site-footer">
         <div className="container">
           <div className="sf-brand">🃏 游戏王<b>集卡社</b></div>
-          <div className="sf-copy">© {new Date().getFullYear()} 游戏王集卡社 · 卡图版权归 KONAMI 所有，本站仅供学习交流</div>
+          <div className="sf-copy">© {new Date().getFullYear()} 游戏王集卡社 · {t("footer.copy")}</div>
           <div className="sf-social">@游戏王集卡社 · 抖音号 <b>ygoclub</b></div>
         </div>
       </footer>
@@ -78,7 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {links.map((l) => (
           <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "active" : "")}>
             <Icon d={ICONS[l.to]} />
-            {l.label}
+            {t(l.key)}
           </NavLink>
         ))}
       </nav>

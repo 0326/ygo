@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { FRAME_OPTIONS, ATTR_OPTIONS, RACE_CN, SUBTYPE_OPTIONS, ST_SUBTYPE_OPTIONS, MD_RARITY_OPTIONS } from "../lib/labels";
+import { FRAME_OPTIONS, ATTR_OPTIONS, SUBTYPE_OPTIONS, ST_SUBTYPE_OPTIONS, MD_RARITY_OPTIONS } from "../lib/labels";
+import { useLang, frameName, attrName, raceName, subtypeName, cardTypeName } from "../lib/i18n";
 
 export function SearchBar({
-  value, onChange, onSubmit, placeholder = "搜索卡名 / 效果（简中）…",
+  value, onChange, onSubmit, placeholder,
 }: {
   value: string; onChange: (v: string) => void; onSubmit: () => void; placeholder?: string;
 }) {
+  const { t } = useLang();
   return (
     <div className="searchbar">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
@@ -13,12 +15,12 @@ export function SearchBar({
       </svg>
       <input
         value={value}
-        placeholder={placeholder}
+        placeholder={placeholder ?? t("common.searchPlaceholder")}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && onSubmit()}
       />
       {value && <button className="sb-clear" onClick={() => { onChange(""); }}>×</button>}
-      <button className="btn btn-primary sb-go" onClick={onSubmit}>搜索</button>
+      <button className="btn btn-primary sb-go" onClick={onSubmit}>{t("common.search")}</button>
     </div>
   );
 }
@@ -29,6 +31,7 @@ export interface Filters {
   race: Set<string>;       // 怪兽种族 或 魔陷子类型（按 type 切换语义，均映射到 race 参数）
   subtype: Set<string>;    // 怪兽能力子类型（调整/反转…）
   mdRarity: Set<string>;   // Master Duel 罕贵
+  format: Set<string>;     // 赛制归属 ocg/tcg/md（M7）
   type: string;
   levelMin: string;
   levelMax: string;
@@ -42,6 +45,7 @@ export interface Filters {
 }
 export const emptyFilters = (): Filters => ({
   frame: new Set(), attribute: new Set(), race: new Set(), subtype: new Set(), mdRarity: new Set(),
+  format: new Set(),
   type: "", levelMin: "", levelMax: "", atkMin: "", atkMax: "",
   defMin: "", defMax: "", link: "", scale: "", sort: "",
 });
@@ -75,18 +79,19 @@ function Toggle({ on, label, color, onClick }: { on: boolean; label: string; col
   );
 }
 
-function RangeRow({ label, min, max, onMin, onMax, hi = 99999 }: {
+function RangeRow({ label, min, max, onMin, onMax, hi = 99999, phMin, phMax }: {
   label: string; min: string; max: string;
   onMin: (v: string) => void; onMax: (v: string) => void; hi?: number;
+  phMin: string; phMax: string;
 }) {
   return (
     <div className="filter-row">
       <span className="filter-label">{label}</span>
       <div className="filter-toggles range-row">
-        <input className="range-input" type="number" inputMode="numeric" placeholder="最小"
+        <input className="range-input" type="number" inputMode="numeric" placeholder={phMin}
           value={min} min={0} max={hi} onChange={(e) => onMin(e.target.value)} />
         <span className="range-sep">—</span>
-        <input className="range-input" type="number" inputMode="numeric" placeholder="最大"
+        <input className="range-input" type="number" inputMode="numeric" placeholder={phMax}
           value={max} min={0} max={hi} onChange={(e) => onMax(e.target.value)} />
       </div>
     </div>
@@ -94,6 +99,7 @@ function RangeRow({ label, min, max, onMin, onMax, hi = 99999 }: {
 }
 
 export function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
+  const { lang, t } = useLang();
   const [openRace, setOpenRace] = useState(false);
   const advCount = advancedCount(filters);
   const hasAdv = advCount > 0;
@@ -122,21 +128,31 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
   return (
     <div className="filter-panel">
       <div className="filter-row">
-        <span className="filter-label">卡种</span>
+        <span className="filter-label">{t("filter.cardType")}</span>
         <div className="filter-toggles">
-          {(["monster","spell","trap"] as const).map((t) => (
-            <Toggle key={t} on={filters.type === t}
-              label={{ monster: "怪兽", spell: "魔法", trap: "陷阱" }[t]}
-              onClick={() => setType(filters.type === t ? "" : t)} />
+          {(["monster","spell","trap"] as const).map((ty) => (
+            <Toggle key={ty} on={filters.type === ty}
+              label={cardTypeName(ty, lang)}
+              onClick={() => setType(filters.type === ty ? "" : ty)} />
           ))}
         </div>
       </div>
 
       <div className="filter-row">
-        <span className="filter-label">卡框</span>
+        <span className="filter-label">{t("filter.format")}</span>
+        <div className="filter-toggles">
+          {["ocg", "tcg", "md"].map((f) => (
+            <Toggle key={f} on={filters.format.has(f)} label={f.toUpperCase()}
+              onClick={() => onChange({ ...filters, format: toggle(filters.format, f) })} />
+          ))}
+        </div>
+      </div>
+
+      <div className="filter-row">
+        <span className="filter-label">{t("filter.frame")}</span>
         <div className="filter-toggles">
           {FRAME_OPTIONS.map((o) => (
-            <Toggle key={o.value} on={filters.frame.has(o.value)} label={o.label}
+            <Toggle key={o.value} on={filters.frame.has(o.value)} label={frameName(o.value, lang)}
               onClick={() => onChange({ ...filters, frame: toggle(filters.frame, o.value) })} />
           ))}
         </div>
@@ -144,10 +160,10 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
 
       {showMonster && (
         <div className="filter-row">
-          <span className="filter-label">属性</span>
+          <span className="filter-label">{t("filter.attribute")}</span>
           <div className="filter-toggles">
             {ATTR_OPTIONS.map((o) => (
-              <Toggle key={o.value} on={filters.attribute.has(o.value)} label={o.label}
+              <Toggle key={o.value} on={filters.attribute.has(o.value)} label={attrName(o.value, lang)}
                 onClick={() => onChange({ ...filters, attribute: toggle(filters.attribute, o.value) })} />
             ))}
           </div>
@@ -156,14 +172,14 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
 
       {showMonster && (
         <div className="filter-row">
-          <span className="filter-label">种族</span>
+          <span className="filter-label">{t("filter.race")}</span>
           <div className="filter-toggles">
             {(openRace ? MONSTER_RACES : MONSTER_RACES.slice(0, 10)).map((r) => (
-              <Toggle key={r} on={filters.race.has(r)} label={RACE_CN[r] || r}
+              <Toggle key={r} on={filters.race.has(r)} label={raceName(r, lang)}
                 onClick={() => onChange({ ...filters, race: toggle(filters.race, r) })} />
             ))}
             <button className="filter-toggle ghost" onClick={() => setOpenRace((v) => !v)}>
-              {openRace ? "收起" : "更多…"}
+              {openRace ? t("filter.less") : t("filter.more")}
             </button>
           </div>
         </div>
@@ -171,10 +187,10 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
 
       {isSpellTrap && (
         <div className="filter-row">
-          <span className="filter-label">{filters.type === "spell" ? "魔法种类" : "陷阱种类"}</span>
+          <span className="filter-label">{filters.type === "spell" ? t("filter.spellType") : t("filter.trapType")}</span>
           <div className="filter-toggles">
             {ST_SUBTYPE_OPTIONS.map((o) => (
-              <Toggle key={o.value} on={filters.race.has(o.value)} label={o.label}
+              <Toggle key={o.value} on={filters.race.has(o.value)} label={raceName(o.value, lang)}
                 onClick={() => onChange({ ...filters, race: toggle(filters.race, o.value) })} />
             ))}
           </div>
@@ -185,7 +201,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
         <span className="filter-label" />
         <div className="filter-toggles">
           <button className="filter-toggle ghost adv-toggle" onClick={() => setOpenAdv((v) => !v)}>
-            高级筛选{!openAdv && advCount > 0 ? `（${advCount}）` : ""} {openAdv ? "▴" : "▾"}
+            {t("filter.advanced")}{!openAdv && advCount > 0 ? `（${advCount}）` : ""} {openAdv ? "▴" : "▾"}
           </button>
         </div>
       </div>
@@ -194,18 +210,21 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
         <>
           {showMonster && (
             <>
-              <RangeRow label="等级/阶" min={filters.levelMin} max={filters.levelMax} hi={13}
+              <RangeRow label={t("filter.level")} min={filters.levelMin} max={filters.levelMax} hi={13}
+                phMin={t("filter.min")} phMax={t("filter.max")}
                 onMin={(v) => onChange({ ...filters, levelMin: v })}
                 onMax={(v) => onChange({ ...filters, levelMax: v })} />
-              <RangeRow label="攻击力" min={filters.atkMin} max={filters.atkMax}
+              <RangeRow label={t("filter.atk")} min={filters.atkMin} max={filters.atkMax}
+                phMin={t("filter.min")} phMax={t("filter.max")}
                 onMin={(v) => onChange({ ...filters, atkMin: v })}
                 onMax={(v) => onChange({ ...filters, atkMax: v })} />
-              <RangeRow label="守备力" min={filters.defMin} max={filters.defMax}
+              <RangeRow label={t("filter.def")} min={filters.defMin} max={filters.defMax}
+                phMin={t("filter.min")} phMax={t("filter.max")}
                 onMin={(v) => onChange({ ...filters, defMin: v })}
                 onMax={(v) => onChange({ ...filters, defMax: v })} />
 
               <div className="filter-row">
-                <span className="filter-label">LINK 值</span>
+                <span className="filter-label">{t("filter.link")}</span>
                 <div className="filter-toggles">
                   {["1", "2", "3", "4", "5", "6"].map((v) => (
                     <Toggle key={v} on={filters.link === v} label={`LINK-${v}`}
@@ -215,7 +234,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
               </div>
 
               <div className="filter-row">
-                <span className="filter-label">灵摆刻度</span>
+                <span className="filter-label">{t("filter.scale")}</span>
                 <div className="filter-toggles range-row">
                   <input className="range-input" type="number" inputMode="numeric" placeholder="0–13"
                     value={filters.scale} min={0} max={13}
@@ -224,10 +243,10 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
               </div>
 
               <div className="filter-row">
-                <span className="filter-label">子类型</span>
+                <span className="filter-label">{t("filter.subtype")}</span>
                 <div className="filter-toggles">
                   {SUBTYPE_OPTIONS.map((o) => (
-                    <Toggle key={o.value} on={filters.subtype.has(o.value)} label={o.label}
+                    <Toggle key={o.value} on={filters.subtype.has(o.value)} label={subtypeName(o.value, lang)}
                       onClick={() => onChange({ ...filters, subtype: toggle(filters.subtype, o.value) })} />
                   ))}
                 </div>
@@ -236,7 +255,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
           )}
 
           <div className="filter-row">
-            <span className="filter-label">MD 罕贵</span>
+            <span className="filter-label">{t("filter.mdRarity")}</span>
             <div className="filter-toggles">
               {MD_RARITY_OPTIONS.map((o) => (
                 <Toggle key={o.value} on={filters.mdRarity.has(o.value)} label={o.label}
@@ -248,10 +267,10 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
       )}
 
       <div className="filter-row">
-        <span className="filter-label">排序</span>
+        <span className="filter-label">{t("filter.sort")}</span>
         <div className="filter-toggles">
-          {[["", "默认"], ["atk", "攻击力"], ["level", "等级"]].map(([v, l]) => (
-            <Toggle key={v} on={filters.sort === v} label={l}
+          {([["", "sort.default"], ["atk", "sort.atk"], ["level", "sort.level"]] as const).map(([v, k]) => (
+            <Toggle key={v} on={filters.sort === v} label={t(k)}
               onClick={() => onChange({ ...filters, sort: v })} />
           ))}
         </div>
@@ -268,6 +287,7 @@ export function filtersToParams(f: Filters) {
     race: [...f.race].join(","),
     subtype: [...f.subtype].join(","),
     md_rarity: [...f.mdRarity].join(","),
+    format: [...f.format].join(","),
     type: f.type,
     level_min: f.levelMin,
     level_max: f.levelMax,
@@ -289,6 +309,7 @@ export function filtersFromParams(sp: URLSearchParams): Filters {
     race: list("race"),
     subtype: list("subtype"),
     mdRarity: list("md_rarity"),
+    format: list("format"),
     type: sp.get("type") || "",
     levelMin: sp.get("level_min") || "",
     levelMax: sp.get("level_max") || "",

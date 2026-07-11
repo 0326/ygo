@@ -5,6 +5,7 @@ import type { SearchResponse } from "../../shared/types";
 import { CardGrid } from "../components/CardThumbnail";
 import { SearchBar, FilterPanel, filtersFromParams, filtersToParams, type Filters } from "../components/SearchControls";
 import { Spinner, Empty, ErrorBox } from "../components/common";
+import { useLang } from "../lib/i18n";
 
 const PAGE_SIZE = 30;
 
@@ -27,6 +28,7 @@ function buildParams(q: string, filters: Filters, archetype: string, page: numbe
 
 // URL 是搜索状态的唯一事实来源：筛选/页码全部进地址栏，刷新、分享、前进后退均可还原。
 export default function Search() {
+  const { t } = useLang();
   const [sp, setSp] = useSearchParams();
   const spStr = sp.toString();
   const [q, setQ] = useState(() => sp.get("q") || "");
@@ -98,8 +100,8 @@ export default function Search() {
     <div className="container page fade-in">
       <div className="page-head">
         <div>
-          <h1>查卡</h1>
-          <div className="sub">{data ? `共 ${data.total.toLocaleString("zh-CN")} 张匹配` : "简中卡名 / 效果全文检索 + 多维筛选"}</div>
+          <h1>{t("search.title")}</h1>
+          <div className="sub">{data ? t("search.matched", { n: data.total.toLocaleString() }) : t("search.sub")}</div>
         </div>
       </div>
 
@@ -113,7 +115,7 @@ export default function Search() {
         <div className="search-results">
           {err ? <ErrorBox msg={err} />
             : loading && !data ? <Spinner />
-            : data && data.items.length === 0 ? <Empty text="没有匹配的卡片，换个条件试试" />
+            : data && data.items.length === 0 ? <Empty text={t("common.empty")} />
             : data && (
               <>
                 <div style={{ opacity: loading ? .5 : 1, transition: ".2s" }}>
@@ -121,9 +123,9 @@ export default function Search() {
                 </div>
                 {totalPages > 1 && (
                   <div className="pager">
-                    <button className="btn" disabled={page <= 1} onClick={() => goPage(page - 1)}>上一页</button>
+                    <button className="btn" disabled={page <= 1} onClick={() => goPage(page - 1)}>{t("common.prev")}</button>
                     <span className="cur">{page} / {totalPages}</span>
-                    <button className="btn" disabled={page >= totalPages} onClick={() => goPage(page + 1)}>下一页</button>
+                    <button className="btn" disabled={page >= totalPages} onClick={() => goPage(page + 1)}>{t("common.next")}</button>
                   </div>
                 )}
               </>
