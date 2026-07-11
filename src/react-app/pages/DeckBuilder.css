@@ -112,3 +112,26 @@
 .ds-prob-bar { flex: 1; height: 8px; background: var(--bg-3); border-radius: 999px; overflow: hidden; }
 .ds-prob-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-soft), var(--gold)); }
 .ds-prob-v { width: 48px; text-align: right; color: var(--text-0); font-weight: 600; }
+
+/* ---- 分区指定 / 拖拽 / 份数角标 / 搜索错误态 ---- */
+.zone.drop-hover { outline: 2px dashed var(--gold); outline-offset: -2px; background: rgba(212,175,55,.05); }
+.pool-card { cursor: grab; }
+.pool-count {
+  position: absolute; top: 4px; left: 4px; z-index: 2;
+  font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px;
+  background: rgba(0,0,0,.75); color: var(--gold-soft);
+}
+.pool-side-add {
+  position: absolute; right: 4px; bottom: 26px; z-index: 2;
+  font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 5px;
+  background: rgba(0,0,0,.75); color: #fff; border: 1px solid var(--line-strong);
+  cursor: pointer; opacity: 0; transition: opacity .12s;
+}
+.pool-card:hover .pool-side-add, .pool-card:focus-within .pool-side-add { opacity: 1; }
+.pool-side-add:hover { background: var(--gold); color: #2a2208; }
+@media (hover: none) { .pool-side-add { opacity: 1; } }
+.pool-err {
+  display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+  padding: 16px; font-size: 13px; color: #ff9a8a;
+  background: rgba(192,57,43,.10); border-left: 3px solid #c0392b; border-radius: var(--radius-sm);
+}

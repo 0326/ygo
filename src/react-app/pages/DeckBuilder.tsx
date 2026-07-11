@@ -4,13 +4,13 @@ import { useSearchParams } from "react-router-dom";
 import type { CardSummary, BanFormat } from "../../shared/types";
 import { searchCards, getCard } from "../lib/api";
 import {
-  emptyDeck, defaultZone, validate, countOf, toYdk, encodeDeck, decodeDeck,
+  emptyDeck, defaultZone, isExtraCard, validate, countOf, toYdk, encodeDeck, decodeDeck,
   uniqueIds, fromYdk, deckStats, hyperAtLeast, LIMITS, type Deck, type Zone,
 } from "../lib/deck";
 import { SearchBar } from "../components/SearchControls";
 import { AttributeIcon, BanBadge } from "../components/badges";
 import { Spinner } from "../components/common";
-import { frameColor, ATTR_CN, ATTR_COLOR, BAN_FORMAT_CN } from "../lib/labels";
+import { frameColor, ATTR_CN, ATTR_COLOR, BAN_FORMAT_CN, BAN_LIMIT } from "../lib/labels";
 import {
   composeShareImage, exportShareImage, type ShareItem,
 } from "../canvas/ShareImageComposer";
@@ -82,27 +82,43 @@ export default function DeckBuilder() {
 
   const flash = (m: string) => { setToast(m); window.clearTimeout((flash as { t?: number }).t); (flash as { t?: number }).t = window.setTimeout(() => setToast(""), 1800); };
 
-  // 搜索（防抖）
+  // 搜索
+  const [searchErr, setSearchErr] = useState("");
   const submitSearch = () => {
     const term = q.trim();
-    if (!term) { setResults([]); return; }
+    if (!term) { setResults([]); setSearchErr(""); return; }
     setSearching(true);
+    setSearchErr("");
     searchCards({ q: term, size: 30 })
       .then((r) => { r.items.forEach(remember); setResults(r.items); })
-      .catch(() => setResults([]))
+      .catch((e) => { setResults([]); setSearchErr(String(e.message || e)); })
       .finally(() => setSearching(false));
   };
 
   const add = (c: CardSummary, zone?: Zone) => {
     remember(c);
     const z = zone ?? defaultZone(c);
+    // 按当前赛制禁限收紧单卡上限（禁0/限1/准2），加卡时即拦截而非事后报错
+    const st = c.ban?.[format];
+    const max = st != null ? BAN_LIMIT[st] : LIMITS.perCard;
     setDeck((d) => {
-      if (countOf(d, c.id) >= LIMITS.perCard) { flash(`「${c.cn_name}」最多 3 张`); return d; }
+      if (countOf(d, c.id) >= max) {
+        flash(max === 0
+          ? `「${c.cn_name}」是 ${BAN_FORMAT_CN[format]} 禁止卡`
+          : `「${c.cn_name}」在 ${BAN_FORMAT_CN[format]} 上限 ${max} 张`);
+        return d;
+      }
+      if (z === "main" && isExtraCard(c)) { flash("融合/同调/超量/连接请放额外卡组"); return d; }
+      if (z === "extra" && !isExtraCard(c)) { flash("只有融合/同调/超量/连接能进额外卡组"); return d; }
       if (z === "main" && d.main.length >= LIMITS.mainMax) { flash("主卡组已满 60"); return d; }
       if (z === "extra" && d.extra.length >= LIMITS.extraMax) { flash("额外卡组已满 15"); return d; }
       if (z === "side" && d.side.length >= LIMITS.sideMax) { flash("副卡组已满 15"); return d; }
       return { ...d, [z]: [...d[z], c.id] };
     });
+  };
+  const addById = (zone: Zone, id: number) => {
+    const c = cache.current.get(id);
+    if (c) add(c, zone);
   };
   const removeOne = (zone: Zone, id: number) => {
     setDeck((d) => {
@@ -180,7 +196,7 @@ export default function DeckBuilder() {
         <div className="page-head">
           <div>
             <h1>组卡器</h1>
-            <div className="sub">拖入主/额外/副卡组 · 规则校验 · 导出 YDK + 卡组一图流 + 分享链接</div>
+            <div className="sub">点击 / 拖拽组卡 · 禁限规则校验 · 导出 YDK + 卡组一图流 + 分享链接</div>
           </div>
         </div>
 
@@ -216,16 +232,39 @@ export default function DeckBuilder() {
           {/* 卡池 */}
           <aside className="deck-pool">
             <SearchBar value={q} onChange={setQ} onSubmit={submitSearch} placeholder="搜索卡片加入卡组…" />
-            <div className="pool-hint muted">点击卡片加入卡组 · 额外卡框自动进额外卡组</div>
-            {searching ? <Spinner /> : (
+            <div className="pool-hint muted">点击加入（额外卡框自动归位） · Shift+点击 / 副+ 进副卡组 · 可拖拽到任意区</div>
+            {searching ? <Spinner /> : searchErr ? (
+              <div className="pool-err">
+                <div>搜索失败：{searchErr}</div>
+                <button className="btn" onClick={submitSearch}>重试</button>
+              </div>
+            ) : (
               <div className="pool-grid">
-                {results.map((c) => (
-                  <button key={c.id} className="pool-card" onClick={() => add(c)} title={`加入 ${c.cn_name}`}>
-                    <img src={c.thumb_url} alt={c.cn_name} loading="lazy" />
-                    {c.ban && <span className="pool-ban"><BanBadge ban={c.ban} format={format} dot /></span>}
-                    <span className="pool-name">{c.cn_name}</span>
-                  </button>
-                ))}
+                {results.map((c) => {
+                  const n = countOf(deck, c.id);
+                  const st = c.ban?.[format];
+                  const max = st != null ? BAN_LIMIT[st] : LIMITS.perCard;
+                  return (
+                    <div
+                      key={c.id} className="pool-card" role="button" tabIndex={0}
+                      draggable
+                      onDragStart={(e) => e.dataTransfer.setData("text/plain", String(c.id))}
+                      onClick={(e) => add(c, e.shiftKey ? "side" : undefined)}
+                      onKeyDown={(e) => { if (e.key === "Enter") add(c, e.shiftKey ? "side" : undefined); }}
+                      title={`加入 ${c.cn_name}`}
+                    >
+                      <img src={c.thumb_url} alt={c.cn_name} loading="lazy" />
+                      {c.ban && <span className="pool-ban"><BanBadge ban={c.ban} format={format} dot /></span>}
+                      {n > 0 && <span className="pool-count">{n}/{max}</span>}
+                      <button
+                        className="pool-side-add"
+                        onClick={(e) => { e.stopPropagation(); add(c, "side"); }}
+                        title={`「${c.cn_name}」加入副卡组`}
+                      >副+</button>
+                      <span className="pool-name">{c.cn_name}</span>
+                    </div>
+                  );
+                })}
                 {!results.length && <div className="muted" style={{ padding: 20 }}>搜索卡片以构筑卡组</div>}
               </div>
             )}
@@ -234,9 +273,9 @@ export default function DeckBuilder() {
           {/* 卡组三区 */}
           <section className="deck-zones">
             {loadingShared && <div className="muted" style={{ marginBottom: 8 }}>载入分享卡组中…</div>}
-            <DeckZone zone="main" deck={deck} cache={cache.current} onRemove={removeOne} format={format} />
-            <DeckZone zone="extra" deck={deck} cache={cache.current} onRemove={removeOne} format={format} />
-            <DeckZone zone="side" deck={deck} cache={cache.current} onRemove={removeOne} format={format} />
+            <DeckZone zone="main" deck={deck} cache={cache.current} onRemove={removeOne} onAdd={addById} format={format} />
+            <DeckZone zone="extra" deck={deck} cache={cache.current} onRemove={removeOne} onAdd={addById} format={format} />
+            <DeckZone zone="side" deck={deck} cache={cache.current} onRemove={removeOne} onAdd={addById} format={format} />
 
             {!v.ok && v.errors.length > 0 && (
               <div className="deck-errors">
@@ -335,13 +374,27 @@ function Count({ label, n, min, max }: { label: string; n: number; min?: number;
 }
 
 function DeckZone({
-  zone, deck, cache, onRemove, format,
+  zone, deck, cache, onRemove, onAdd, format,
 }: {
-  zone: Zone; deck: Deck; cache: Map<number, CardSummary>; onRemove: (z: Zone, id: number) => void; format: BanFormat;
+  zone: Zone; deck: Deck; cache: Map<number, CardSummary>;
+  onRemove: (z: Zone, id: number) => void; onAdd: (z: Zone, id: number) => void; format: BanFormat;
 }) {
   const ids = deck[zone];
+  const [hover, setHover] = useState(false);
+  const depth = useRef(0); // dragenter/leave 在子元素间冒泡，用计数器判定真正离开
   return (
-    <div className="zone">
+    <div
+      className={`zone${hover ? " drop-hover" : ""}`}
+      onDragOver={(e) => e.preventDefault()}
+      onDragEnter={(e) => { e.preventDefault(); depth.current++; setHover(true); }}
+      onDragLeave={() => { depth.current = Math.max(0, depth.current - 1); if (!depth.current) setHover(false); }}
+      onDrop={(e) => {
+        e.preventDefault();
+        depth.current = 0; setHover(false);
+        const id = parseInt(e.dataTransfer.getData("text/plain"), 10);
+        if (Number.isFinite(id) && id > 0) onAdd(zone, id);
+      }}
+    >
       <div className="zone-head">
         <h3>{ZONE_CN[zone]}</h3>
         <span className="muted">{ids.length} 张</span>
