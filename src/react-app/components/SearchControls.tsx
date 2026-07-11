@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FRAME_OPTIONS, ATTR_OPTIONS, RACE_CN, SUBTYPE_OPTIONS, ST_SUBTYPE_OPTIONS, MD_RARITY_OPTIONS } from "../lib/labels";
 
 export function SearchBar({
@@ -34,12 +34,28 @@ export interface Filters {
   levelMax: string;
   atkMin: string;
   atkMax: string;
+  defMin: string;
+  defMax: string;
+  link: string;            // LINK 值（单选）
+  scale: string;           // 灵摆刻度
   sort: string;
 }
 export const emptyFilters = (): Filters => ({
   frame: new Set(), attribute: new Set(), race: new Set(), subtype: new Set(), mdRarity: new Set(),
-  type: "", levelMin: "", levelMax: "", atkMin: "", atkMax: "", sort: "",
+  type: "", levelMin: "", levelMax: "", atkMin: "", atkMax: "",
+  defMin: "", defMax: "", link: "", scale: "", sort: "",
 });
+
+/** 高级筛选中处于激活状态的条件数（折叠时展示在按钮上） */
+export function advancedCount(f: Filters): number {
+  let n = 0;
+  if (f.levelMin || f.levelMax) n++;
+  if (f.atkMin || f.atkMax) n++;
+  if (f.defMin || f.defMax) n++;
+  if (f.link) n++;
+  if (f.scale) n++;
+  return n + f.subtype.size + f.mdRarity.size;
+}
 
 const MONSTER_RACES = [
   "Dragon","Spellcaster","Warrior","Beast","Machine","Fiend","Fairy","Zombie",
@@ -79,6 +95,11 @@ function RangeRow({ label, min, max, onMin, onMax, hi = 99999 }: {
 
 export function FilterPanel({ filters, onChange }: { filters: Filters; onChange: (f: Filters) => void }) {
   const [openRace, setOpenRace] = useState(false);
+  const advCount = advancedCount(filters);
+  const hasAdv = advCount > 0;
+  const [openAdv, setOpenAdv] = useState(hasAdv);
+  // URL 恢复 / 前进后退带出高级条件时自动展开，让激活的筛选可见
+  useEffect(() => { if (hasAdv) setOpenAdv(true); }, [hasAdv]);
   const toggle = (set: Set<string>, v: string): Set<string> => {
     const n = new Set(set);
     if (n.has(v)) n.delete(v); else n.add(v);
@@ -87,12 +108,16 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
   const isSpellTrap = filters.type === "spell" || filters.type === "trap";
   const showMonster = !isSpellTrap; // type 为空(全部)或怪兽时按怪兽维度筛选
 
-  // 切换卡种时清掉跨语义的筛选，避免残留（怪兽种族 ↔ 魔陷子类型）
-  const setType = (t: string) => onChange({
-    ...filters, type: t,
-    race: new Set(), subtype: new Set(),
-    attribute: t === "spell" || t === "trap" ? new Set() : filters.attribute,
-  });
+  // 切换卡种时清掉跨语义的筛选，避免残留（怪兽种族 ↔ 魔陷子类型；魔陷下清掉怪兽专属高级条件）
+  const setType = (t: string) => {
+    const st = t === "spell" || t === "trap";
+    onChange({
+      ...filters, type: t,
+      race: new Set(), subtype: new Set(),
+      attribute: st ? new Set() : filters.attribute,
+      ...(st ? { levelMin: "", levelMax: "", atkMin: "", atkMax: "", defMin: "", defMax: "", link: "", scale: "" } : null),
+    });
+  };
 
   return (
     <div className="filter-panel">
@@ -130,37 +155,18 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
       )}
 
       {showMonster && (
-        <>
-          <RangeRow label="等级/阶" min={filters.levelMin} max={filters.levelMax} hi={13}
-            onMin={(v) => onChange({ ...filters, levelMin: v })}
-            onMax={(v) => onChange({ ...filters, levelMax: v })} />
-          <RangeRow label="攻击力" min={filters.atkMin} max={filters.atkMax}
-            onMin={(v) => onChange({ ...filters, atkMin: v })}
-            onMax={(v) => onChange({ ...filters, atkMax: v })} />
-
-          <div className="filter-row">
-            <span className="filter-label">种族</span>
-            <div className="filter-toggles">
-              {(openRace ? MONSTER_RACES : MONSTER_RACES.slice(0, 10)).map((r) => (
-                <Toggle key={r} on={filters.race.has(r)} label={RACE_CN[r] || r}
-                  onClick={() => onChange({ ...filters, race: toggle(filters.race, r) })} />
-              ))}
-              <button className="filter-toggle ghost" onClick={() => setOpenRace((v) => !v)}>
-                {openRace ? "收起" : "更多…"}
-              </button>
-            </div>
+        <div className="filter-row">
+          <span className="filter-label">种族</span>
+          <div className="filter-toggles">
+            {(openRace ? MONSTER_RACES : MONSTER_RACES.slice(0, 10)).map((r) => (
+              <Toggle key={r} on={filters.race.has(r)} label={RACE_CN[r] || r}
+                onClick={() => onChange({ ...filters, race: toggle(filters.race, r) })} />
+            ))}
+            <button className="filter-toggle ghost" onClick={() => setOpenRace((v) => !v)}>
+              {openRace ? "收起" : "更多…"}
+            </button>
           </div>
-
-          <div className="filter-row">
-            <span className="filter-label">子类型</span>
-            <div className="filter-toggles">
-              {SUBTYPE_OPTIONS.map((o) => (
-                <Toggle key={o.value} on={filters.subtype.has(o.value)} label={o.label}
-                  onClick={() => onChange({ ...filters, subtype: toggle(filters.subtype, o.value) })} />
-              ))}
-            </div>
-          </div>
-        </>
+        </div>
       )}
 
       {isSpellTrap && (
@@ -176,14 +182,70 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
       )}
 
       <div className="filter-row">
-        <span className="filter-label">MD 罕贵</span>
+        <span className="filter-label" />
         <div className="filter-toggles">
-          {MD_RARITY_OPTIONS.map((o) => (
-            <Toggle key={o.value} on={filters.mdRarity.has(o.value)} label={o.label}
-              onClick={() => onChange({ ...filters, mdRarity: toggle(filters.mdRarity, o.value) })} />
-          ))}
+          <button className="filter-toggle ghost adv-toggle" onClick={() => setOpenAdv((v) => !v)}>
+            高级筛选{!openAdv && advCount > 0 ? `（${advCount}）` : ""} {openAdv ? "▴" : "▾"}
+          </button>
         </div>
       </div>
+
+      {openAdv && (
+        <>
+          {showMonster && (
+            <>
+              <RangeRow label="等级/阶" min={filters.levelMin} max={filters.levelMax} hi={13}
+                onMin={(v) => onChange({ ...filters, levelMin: v })}
+                onMax={(v) => onChange({ ...filters, levelMax: v })} />
+              <RangeRow label="攻击力" min={filters.atkMin} max={filters.atkMax}
+                onMin={(v) => onChange({ ...filters, atkMin: v })}
+                onMax={(v) => onChange({ ...filters, atkMax: v })} />
+              <RangeRow label="守备力" min={filters.defMin} max={filters.defMax}
+                onMin={(v) => onChange({ ...filters, defMin: v })}
+                onMax={(v) => onChange({ ...filters, defMax: v })} />
+
+              <div className="filter-row">
+                <span className="filter-label">LINK 值</span>
+                <div className="filter-toggles">
+                  {["1", "2", "3", "4", "5", "6"].map((v) => (
+                    <Toggle key={v} on={filters.link === v} label={`LINK-${v}`}
+                      onClick={() => onChange({ ...filters, link: filters.link === v ? "" : v })} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="filter-row">
+                <span className="filter-label">灵摆刻度</span>
+                <div className="filter-toggles range-row">
+                  <input className="range-input" type="number" inputMode="numeric" placeholder="0–13"
+                    value={filters.scale} min={0} max={13}
+                    onChange={(e) => onChange({ ...filters, scale: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="filter-row">
+                <span className="filter-label">子类型</span>
+                <div className="filter-toggles">
+                  {SUBTYPE_OPTIONS.map((o) => (
+                    <Toggle key={o.value} on={filters.subtype.has(o.value)} label={o.label}
+                      onClick={() => onChange({ ...filters, subtype: toggle(filters.subtype, o.value) })} />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          <div className="filter-row">
+            <span className="filter-label">MD 罕贵</span>
+            <div className="filter-toggles">
+              {MD_RARITY_OPTIONS.map((o) => (
+                <Toggle key={o.value} on={filters.mdRarity.has(o.value)} label={o.label}
+                  onClick={() => onChange({ ...filters, mdRarity: toggle(filters.mdRarity, o.value) })} />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       <div className="filter-row">
         <span className="filter-label">排序</span>
@@ -198,6 +260,7 @@ export function FilterPanel({ filters, onChange }: { filters: Filters; onChange:
   );
 }
 
+// URL 参数名与后端 /api/search 参数名保持一致，使搜索页地址可直接分享/还原
 export function filtersToParams(f: Filters) {
   return {
     frame: [...f.frame].join(","),
@@ -210,6 +273,31 @@ export function filtersToParams(f: Filters) {
     level_max: f.levelMax,
     atk_min: f.atkMin,
     atk_max: f.atkMax,
+    def_min: f.defMin,
+    def_max: f.defMax,
+    link: f.link,
+    scale: f.scale,
     sort: f.sort,
+  };
+}
+
+export function filtersFromParams(sp: URLSearchParams): Filters {
+  const list = (k: string) => new Set((sp.get(k) || "").split(",").filter(Boolean));
+  return {
+    frame: list("frame"),
+    attribute: list("attribute"),
+    race: list("race"),
+    subtype: list("subtype"),
+    mdRarity: list("md_rarity"),
+    type: sp.get("type") || "",
+    levelMin: sp.get("level_min") || "",
+    levelMax: sp.get("level_max") || "",
+    atkMin: sp.get("atk_min") || "",
+    atkMax: sp.get("atk_max") || "",
+    defMin: sp.get("def_min") || "",
+    defMax: sp.get("def_max") || "",
+    link: sp.get("link") || "",
+    scale: sp.get("scale") || "",
+    sort: sp.get("sort") || "",
   };
 }
