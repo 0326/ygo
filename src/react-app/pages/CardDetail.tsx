@@ -22,6 +22,19 @@ export default function CardDetail() {
     getCard(id!).then(setCard).catch((e) => setErr(String(e.message || e)));
   }, [id]);
 
+  // 灯箱键盘操作：Esc 关闭，←/→ 切换异画
+  useEffect(() => {
+    if (!zoom) return;
+    const n = card?.artworks.length ?? 0;
+    const h = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setZoom(false);
+      else if (e.key === "ArrowLeft" && n > 1) setActive((i) => (i - 1 + n) % n);
+      else if (e.key === "ArrowRight" && n > 1) setActive((i) => (i + 1) % n);
+    };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [zoom, card]);
+
   if (err) return <div className="container page"><ErrorBox msg={err} /></div>;
   if (!card) return <div className="container page"><Spinner /></div>;
 
@@ -100,7 +113,7 @@ export default function CardDetail() {
                   <LevelStars level={card.level || 0} rank={isXyz} />
                 </>
               )}
-              {isPend && <><span className="k" style={{ marginLeft: 12 }}>刻度</span><b style={{ color: "var(--gold-soft)" }}>← {card.scale} / {card.scale} →</b></>}
+              {isPend && <><span className="k" style={{ marginLeft: 12 }}>灵摆刻度</span><b style={{ color: "var(--gold-soft)" }}>{card.scale}</b></>}
             </div>
           )}
 
