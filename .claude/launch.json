@@ -4,8 +4,9 @@
     {
       "name": "ygo",
       "runtimeExecutable": "env",
-      "runtimeArgs": ["-u", "HTTP_PROXY", "-u", "HTTPS_PROXY", "-u", "http_proxy", "-u", "https_proxy", "WRANGLER_SEND_METRICS=false", "npm", "run", "dev"],
-      "port": 5173
+      "runtimeArgs": ["-u", "HTTP_PROXY", "-u", "HTTPS_PROXY", "-u", "http_proxy", "-u", "https_proxy", "WRANGLER_SEND_METRICS=false", "npm", "run", "dev", "--", "--port", "5199", "--strictPort"],
+      "port": 5199,
+      "autoPort": false
     }
   ]
 }
