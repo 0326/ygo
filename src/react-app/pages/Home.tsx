@@ -11,11 +11,17 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [stats, setStats] = useState<{ cards: number; archetypes: number; artworks: number; sets: number } | null>(null);
   const [series, setSeries] = useState<ArchetypeSummary[]>([]);
+  const [seriesErr, setSeriesErr] = useState("");
   const [hero, setHero] = useState<CardSummary[]>([]);
 
+  // stats/hero 失败可静默降级（有 — 占位）；系列失败要给出错误与重试入口
+  const loadSeries = () => {
+    setSeriesErr("");
+    listArchetypes(40).then((a) => setSeries(a.slice(0, 8))).catch((e) => setSeriesErr(String(e.message || e)));
+  };
   useEffect(() => {
     getStats().then(setStats).catch(() => {});
-    listArchetypes(40).then((a) => setSeries(a.slice(0, 8))).catch(() => {});
+    loadSeries();
     searchCards({ q: "青眼", size: 3 }).then((r) => setHero(r.items)).catch(() => {});
   }, []);
 
@@ -51,7 +57,14 @@ export default function Home() {
         <h2>热门系列图鉴</h2>
         <Link to="/archetypes">查看全部 →</Link>
       </div>
-      <SeriesGrid items={series} />
+      {seriesErr && !series.length ? (
+        <div className="muted" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0" }}>
+          <span>系列加载失败：{seriesErr}</span>
+          <button className="btn" onClick={loadSeries}>重试</button>
+        </div>
+      ) : (
+        <SeriesGrid items={series} />
+      )}
     </div>
   );
 }
