@@ -161,12 +161,20 @@ export default function CardMaker() {
   const model = useMemo(() => buildModel(state, art), [state, art]);
 
   // 重绘预览（高 DPI）。素材/字体需异步加载，故 preload → 同步绘制，并用 cancelled 防竞态。
+  // 首次加载素材较大（高清卡框+字体约 10MB），超过 150ms 未就绪则显示加载浮层。
+  const [assetsLoading, setAssetsLoading] = useState(false);
   useEffect(() => {
     let cancelled = false;
+    let done = false;
     const cssW = 360;
+    const slowTimer = setTimeout(() => { if (!done && !cancelled) setAssetsLoading(true); }, 150);
     const draw = () => {
+      done = true;
+      clearTimeout(slowTimer);
+      if (cancelled) return;
+      setAssetsLoading(false);
       const canvas = canvasRef.current;
-      if (cancelled || !canvas) return;
+      if (!canvas) return;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = Math.round(cssW * dpr);
       canvas.height = Math.round(cssW * CARD_RATIO * dpr);
@@ -180,9 +188,9 @@ export default function CardMaker() {
       renderCardSync(ctx, model, { width: cssW });
       ctx.restore();
     };
-    // 已缓存时同步立即绘制，避免闪烁；未缓存则加载后绘制
+    // 已缓存时立即绘制，避免闪烁；未缓存则加载后绘制
     preloadCardAssets(model).then(draw);
-    return () => { cancelled = true; };
+    return () => { cancelled = true; clearTimeout(slowTimer); };
   }, [model]);
 
   const onUpload = (file: File) => {
@@ -195,15 +203,23 @@ export default function CardMaker() {
     reader.readAsDataURL(file);
   };
 
+  const [exporting, setExporting] = useState(false);
   const onExport = async () => {
-    const { blob } = await exportCardPng(model, 1400);
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${state.name || "fan-card"}.png`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (exporting) return;
+    setExporting(true);
+    try {
+      // 素材原生分辨率 1394×2031（打印级），不做无谓放大
+      const { blob } = await exportCardPng(model);
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${state.name || "fan-card"}.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
   };
 
   const runPrefill = async (rawId: string) => {
@@ -286,7 +302,7 @@ export default function CardMaker() {
         <div className="page-head">
           <h1>自定义制卡器</h1>
           <p className="muted">
-            打造你的专属同人卡，实时预览 · 高清导出 · 一键转发。所有作品均带「非官方·同人卡」标识。
+            打造你的专属同人卡，实时预览 · 高清导出 · 一键转发。所有作品均带「@游戏王集卡社同人卡」标识。
           </p>
         </div>
 
@@ -295,11 +311,17 @@ export default function CardMaker() {
           <aside className="maker-preview">
             <div className="maker-canvas-wrap">
               <canvas ref={canvasRef} className="maker-canvas" />
+              {assetsLoading && (
+                <div className="maker-loading">
+                  <div className="spinner" />
+                  <p>正在加载高清卡面素材…<br /><span>首次约 10MB，之后有缓存秒开</span></p>
+                </div>
+              )}
             </div>
-            <button className="btn btn-primary maker-export" onClick={onExport}>
-              高 DPI 导出 PNG
+            <button className="btn btn-primary maker-export" onClick={onExport} disabled={exporting || assetsLoading}>
+              {exporting ? "导出中…" : "高清导出 PNG"}
             </button>
-            <p className="muted maker-hint">导出宽度 1400px，适合打印与分享</p>
+            <p className="muted maker-hint">导出 1394×2031 打印级 PNG，适合打印与分享</p>
           </aside>
 
           {/* 右：表单 */}

@@ -1,7 +1,7 @@
 // M8.2 真卡还原渲染器：以社区高清卡框素材（1394×2031，MIT）合成，逼近实体 OCG 简中卡面。
 // 素材位于 public/cardgen/（卡框/属性/星级/林克箭头/魔陷图标/稀有镭射 + 游戏王专用字体）。
 // 版式坐标移植自开源项目 kooriookami/yugioh-card 的 sc（简体中文）样式，逐像素对齐卡框。
-// 成品仍在版权位保留「非官方·同人卡」标识，明确为同人二创。
+// 成品在实卡版权文字位标注「@游戏王集卡社同人卡」，明确为同人二创。
 // 说明：素材/字体需异步加载，故绘制走「preload → 同步 render」两段式；renderCard 为便捷 async 封装。
 
 import type { Frame, Attribute, LinkMarker } from "../../shared/types";
@@ -186,25 +186,28 @@ function coverDraw(ctx: CanvasRenderingContext2D, im: HTMLImageElement, dx: numb
   ctx.drawImage(im, sx, sy, sw, sh, dx, dy, dw, dh);
 }
 
-// 单行文本，超宽时横向压缩（还原卡名/类别行的挤压效果）
+// 单行文本，超宽时横向压缩（还原卡名/类别行的挤压效果）。
+// y 语义与源版式一致：vAlign="top" 时为文字行顶边，"middle" 时为行垂直中心。
 function drawSquished(
   ctx: CanvasRenderingContext2D, text: string,
-  x: number, baseline: number, maxW: number, fontPx: number,
+  x: number, y: number, maxW: number, fontPx: number,
   font: string, color: string, align: CanvasTextAlign = "left", letter = 0,
+  vAlign: "top" | "middle" = "top",
 ): void {
   if (!text) return;
   ctx.font = `${fontPx}px ${font}`;
-  ctx.textBaseline = "alphabetic";
+  ctx.textBaseline = vAlign;
   ctx.fillStyle = color;
   ctx.textAlign = "left";
   const w = measure(ctx, text, letter);
   const scaleX = w > maxW ? maxW / w : 1;
   ctx.save();
   const startX = align === "right" ? x - w * scaleX : align === "center" ? x - (w * scaleX) / 2 : x;
-  ctx.translate(startX, baseline);
+  ctx.translate(startX, y);
   ctx.scale(scaleX, 1);
   drawSpaced(ctx, text, 0, 0, letter);
   ctx.restore();
+  ctx.textBaseline = "alphabetic";
 }
 
 function measure(ctx: CanvasRenderingContext2D, text: string, letter: number): number {
@@ -238,23 +241,25 @@ function drawParagraph(
   ctx.font = `${px}px ${font}`;
   ctx.fillStyle = color;
   ctx.textAlign = "left";
-  ctx.textBaseline = "alphabetic";
+  ctx.textBaseline = "top";
   const lh = px * lineHeight;
   const maxLines = Math.max(1, Math.floor(h / lh + 0.01));
   const shown = lines.slice(0, maxLines);
   shown.forEach((ln, i) => {
-    const baseline = y + i * lh + px * 0.86;
+    // 行高的半行距均分上下（与源版式 line-height 语义一致）
+    const ty = y + i * lh + (lh - px) / 2;
     const chars = [...ln.text];
     const isLast = i === shown.length - 1 || ln.hard;
     const raw = measure(ctx, ln.text, letter);
     if (justify && !isLast && chars.length > 1 && raw < w) {
       const extra = (w - raw) / (chars.length - 1);
       let cx = x;
-      for (const ch of chars) { ctx.fillText(ch, cx, baseline); cx += ctx.measureText(ch).width + letter + extra; }
+      for (const ch of chars) { ctx.fillText(ch, cx, ty); cx += ctx.measureText(ch).width + letter + extra; }
     } else {
-      drawSpaced(ctx, ln.text, x, baseline, letter);
+      drawSpaced(ctx, ln.text, x, ty, letter);
     }
   });
+  ctx.textBaseline = "alphabetic";
 }
 
 function wrapCJK(ctx: CanvasRenderingContext2D, text: string, maxW: number, letter: number): { text: string; hard: boolean }[] {
@@ -341,10 +346,10 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
   }
   drawImg(ctx, `${IMG}/${pend ? "card-mask-pendulum" : "card-mask"}.png`, pend ? 68 : 117, pend ? 342 : 322);
 
-  // 3) 卡名
+  // 3) 卡名（垂直中心对齐属性珠中心 y=160，与实卡名条一致）
   const showAttr = isMonster ? !!model.attribute : true;
   const nameMaxW = showAttr ? 1033 : 1161;
-  drawSquished(ctx, model.name || "", 116, 97 + 108 * 0.82, nameMaxW, 108, "ygo-sc", nameColor, "left");
+  drawSquished(ctx, model.name || "", 116, 160, nameMaxW, 108, "ygo-sc", nameColor, "left", 0, "middle");
 
   // 4) 属性图标
   const a = attrAsset(model);
@@ -364,14 +369,14 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
     }
   }
 
-  // 6) 魔法/陷阱类别行（右对齐，可含子类型图标）
+  // 6) 魔法/陷阱类别行（右对齐，可含子类型图标；魔陷名条为白字但类别行在框内为黑字）
   if (!isMonster) {
     const label = model.cardType === "spell" ? "【魔法卡" : "【陷阱卡";
     const rb = "】";
     const st = stIcon(model);
     const stImg = st ? imgOf(`${IMG}/${st}.png`) : undefined;
     ctx.font = `76px ygo-sc`;
-    ctx.textBaseline = "alphabetic";
+    ctx.textBaseline = "top";
     ctx.fillStyle = "#0a0a0a";
     ctx.textAlign = "left";
     const rbW = ctx.measureText(rb).width;
@@ -379,24 +384,25 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
     const iconGapL = stImg ? 10 : 0;
     const labelW = measure(ctx, label, 2);
     const total = labelW + iconGapL + iconW + rbW;
-    const baseline = 254 + 76 * 0.82;
+    const topY = 254;
     let cx = BW - 134 - total;
-    drawSpaced(ctx, label, cx, baseline, 2);
+    drawSpaced(ctx, label, cx, topY, 2);
     cx += labelW + iconGapL;
-    if (stImg) { drawImg(ctx, `${IMG}/${st}.png`, cx, 254 + 8, 72, 72); cx += iconW; }
-    ctx.fillText(rb, cx, baseline);
+    if (stImg) { drawImg(ctx, `${IMG}/${st}.png`, cx, topY + 8, 72, 72); cx += iconW; }
+    ctx.fillText(rb, cx, topY);
+    ctx.textBaseline = "alphabetic";
   }
 
   // 7) 灵摆刻度 + 灵摆效果
   if (pend) {
     ctx.fillStyle = "#0a0a0a";
     ctx.font = `98px ygo-atk-def`;
-    ctx.textBaseline = "alphabetic";
+    ctx.textBaseline = "top";
     ctx.textAlign = "center";
     const sc = String(model.scale ?? 0);
-    const by = 1370 + 98 * 0.82;
-    ctx.fillText(sc, 145, by);
-    ctx.fillText(sc, 1249, by);
+    ctx.fillText(sc, 145, 1370);
+    ctx.fillText(sc, 1249, 1370);
+    ctx.textBaseline = "alphabetic";
     const pe = (model.pendulumEffect || "").trim();
     if (pe) drawParagraph(ctx, pe, 221, 1282, 950, 232, 36, "ygo-sc", "#0a0a0a", 1.2, 2, false);
   }
@@ -414,7 +420,7 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
   const effLineH = 44 * 1.2;
   let descTop = effTop;
   if (isMonster) {
-    drawSquished(ctx, monsterTypeLine(model), 109, effTop + 44 * 0.86, 1175, 44, "ygo-sc", "#0a0a0a", "left", 1);
+    drawSquished(ctx, monsterTypeLine(model), 109, effTop, 1175, 44, "ygo-sc", "#0a0a0a", "left", 1);
     descTop = effTop + effLineH;
   }
   // 正文高度
@@ -436,7 +442,8 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
     ctx.fillStyle = "#0a0a0a";
     ctx.textBaseline = "alphabetic";
     ctx.textAlign = "right";
-    const numBase = 1839 + 62 * 0.82;
+    // 数字基线钉在 atk-def.svg 内 "ATK/ DEF/" 标签的字形基线上（svg 内 y≈51.6，贴图于 1844）
+    const numBase = 1844 + 51.6;
     if (model.atk !== null) {
       ctx.font = `62px ygo-atk-def`;
       ctx.fillText(statText(model.atk), 999, numBase);
@@ -445,7 +452,7 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
       ctx.font = `44px ygo-link`;
       const linkN = model.linkMarkers.length || model.level || 0;
       ctx.save();
-      ctx.translate(1280, 1855 + 44 * 0.82);
+      ctx.translate(1280, numBase);
       ctx.scale(1.3, 1);
       ctx.textAlign = "right";
       ctx.fillText(String(linkN), 0, 0);
@@ -458,20 +465,21 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
 
   // 11) 卡密（左下）+ 套牌编号（右下 / 灵摆左下）
   ctx.fillStyle = darkText;
-  ctx.textBaseline = "alphabetic";
+  ctx.textBaseline = "top";
   ctx.font = `40px ygo-password`;
   ctx.textAlign = "left";
-  if (model.passcode) ctx.fillText(model.passcode, 66, 1932 + 40 * 0.82);
+  if (model.passcode) ctx.fillText(model.passcode, 66, 1932);
   if (model.setCode) {
     if (pend) {
       ctx.textAlign = "left";
-      ctx.fillText(model.setCode, 116, 1859 + 40 * 0.82);
+      ctx.fillText(model.setCode, 116, 1859);
     } else {
       ctx.textAlign = "right";
       const right = model.isLink ? 252 : 148;
-      ctx.fillText(model.setCode, BW - right, 1455 + 40 * 0.82);
+      ctx.fillText(model.setCode, BW - right, 1455);
     }
   }
+  ctx.textBaseline = "alphabetic";
 
   // 12) 稀有度镭射叠层（克制透明度，作为箔面光泽而非彩虹涂布）
   const rare = rareAsset(model);
@@ -483,11 +491,13 @@ export function renderCardSync(ctx: CanvasRenderingContext2D, model: CardModel, 
     ctx.restore();
   }
 
-  // 13) 同人卡标识（版权位，右下，克制）
-  ctx.fillStyle = whiteName(model) && model.frame === "xyz" ? "rgba(255,255,255,.75)" : "rgba(20,14,8,.62)";
-  ctx.font = `26px ygo-password`;
+  // 13) 同人卡标识（实卡版权文字位，右下；用简中卡面字体保证 CJK 字形一致）
+  ctx.fillStyle = model.frame === "xyz" && isMonster ? "rgba(255,255,255,.85)" : "rgba(20,14,8,.8)";
+  ctx.font = `30px ygo-sc`;
   ctx.textAlign = "right";
-  ctx.fillText("非官方·同人卡 FAN-MADE", BW - 141, 1965 + 26 * 0.82);
+  ctx.textBaseline = "top";
+  ctx.fillText("@游戏王集卡社同人卡", BW - 141, 1936);
+  ctx.textBaseline = "alphabetic";
 
   ctx.restore();
 }
