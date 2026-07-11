@@ -21,7 +21,8 @@ import {
 import {
   CARD_RATIO,
   exportCardPng,
-  renderCard,
+  preloadCardAssets,
+  renderCardSync,
   type CardModel,
 } from "../canvas/CardCanvasRenderer";
 import "./CardMaker.css";
@@ -98,7 +99,7 @@ const DEFAULT_STATE: State = {
   atk: "1800",
   def: "1200",
   passcode: "00000000",
-  rarity: "烫金",
+  rarity: "普通",
   setCode: "HJMK-CN001",
   linkMarkers: [],
 };
@@ -159,23 +160,29 @@ export default function CardMaker() {
 
   const model = useMemo(() => buildModel(state, art), [state, art]);
 
-  // 重绘预览（高 DPI）
+  // 重绘预览（高 DPI）。素材/字体需异步加载，故 preload → 同步绘制，并用 cancelled 防竞态。
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    let cancelled = false;
     const cssW = 360;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.round(cssW * dpr);
-    canvas.height = Math.round(cssW * CARD_RATIO * dpr);
-    canvas.style.width = `${cssW}px`;
-    canvas.style.height = `${cssW * CARD_RATIO}px`;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.scale(dpr, dpr);
-    renderCard(ctx, model, { width: cssW });
-    ctx.restore();
+    const draw = () => {
+      const canvas = canvasRef.current;
+      if (cancelled || !canvas) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssW * CARD_RATIO * dpr);
+      canvas.style.width = `${cssW}px`;
+      canvas.style.height = `${cssW * CARD_RATIO}px`;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      renderCardSync(ctx, model, { width: cssW });
+      ctx.restore();
+    };
+    // 已缓存时同步立即绘制，避免闪烁；未缓存则加载后绘制
+    preloadCardAssets(model).then(draw);
+    return () => { cancelled = true; };
   }, [model]);
 
   const onUpload = (file: File) => {

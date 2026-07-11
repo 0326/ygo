@@ -206,7 +206,7 @@ export default function DeckBuilder() {
       const items: ShareItem[] = await Promise.all(
         cards.map(async (c) => ({ card: c, image: await loadImg(c) })),
       );
-      const canvas = composeShareImage(items, {
+      const canvas = await composeShareImage(items, {
         title: "我的卡组",
         subtitle: `主 ${deck.main.length} · 额外 ${deck.extra.length} · 副 ${deck.side.length}｜哈基米卡库`,
         layout: "grid",

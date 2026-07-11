@@ -168,7 +168,7 @@ export default function ShareImage() {
           image: await getImg(useFull ? `/img/${c.id}` : c.thumb_url),
         })),
       );
-      const canvas = composeShareImage(items, { title, subtitle, layout });
+      const canvas = await composeShareImage(items, { title, subtitle, layout });
       const { dataUrl, blob } = await exportShareImage(canvas);
       setPreviewUrl(dataUrl);
       blobRef.current = blob;

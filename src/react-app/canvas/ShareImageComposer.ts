@@ -11,7 +11,7 @@ import {
   raceCn,
   statStr,
 } from "../lib/labels";
-import { renderCard, type CardModel } from "./CardCanvasRenderer";
+import { renderCard, CARD_RATIO, type CardModel } from "./CardCanvasRenderer";
 
 export interface ShareItem {
   card: CardSummary;
@@ -371,10 +371,10 @@ function drawFooter(
  * 合成分享长图。返回离屏 canvas（调用方负责导出）。
  * items 中的 image 应已加载完成（same-origin，不污染画布）。
  */
-export function composeShareImage(
+export async function composeShareImage(
   items: ShareItem[],
   opts: ShareOptions,
-): HTMLCanvasElement {
+): Promise<HTMLCanvasElement> {
   const W = opts.width ?? 1080;
   const H = Math.round(computeHeight(opts, items.length, W));
   const canvas = document.createElement("canvas");
@@ -416,21 +416,21 @@ export function composeShareImage(
     const rows = Math.ceil(items.length / cols);
     cy += rows * (cellH + gap);
   } else {
-    // cards: 复用 renderCard
+    // cards: 复用 renderCard（真卡框合成，需异步预加载素材）
     const cols = 2;
     const gap = W * 0.04;
     const cellW = (W - padX * 2 - (cols - 1) * gap) / cols;
-    const cellH = cellW * 1.4665;
-    items.forEach((it, i) => {
+    const cellH = cellW * CARD_RATIO;
+    for (let i = 0; i < items.length; i++) {
       const col = i % cols;
       const row = Math.floor(i / cols);
       const x = padX + col * (cellW + gap);
       const y = cy + row * (cellH + gap);
       ctx.save();
       ctx.translate(x, y);
-      renderCard(ctx, toCardModel(it), { width: cellW });
+      await renderCard(ctx, toCardModel(items[i]), { width: cellW });
       ctx.restore();
-    });
+    }
     const rows = Math.ceil(items.length / cols);
     cy += rows * (cellH + gap);
   }
