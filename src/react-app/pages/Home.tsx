@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getStats, listArchetypes, searchCards } from "../lib/api";
 import type { ArchetypeSummary, CardSummary } from "../../shared/types";
-import { CardThumbnail } from "../components/CardThumbnail";
+import { CardGrid } from "../components/CardThumbnail";
 import { SeriesGrid } from "./Archetypes";
 import { SearchBar } from "../components/SearchControls";
 
@@ -22,7 +22,7 @@ export default function Home() {
   useEffect(() => {
     getStats().then(setStats).catch(() => {});
     loadSeries();
-    searchCards({ q: "青眼", size: 3 }).then((r) => setHero(r.items)).catch(() => {});
+    searchCards({ q: "青眼", size: 12 }).then((r) => setHero(r.items)).catch(() => {});
   }, []);
 
   const go = () => nav(`/search?q=${encodeURIComponent(q.trim())}`);
@@ -44,14 +44,21 @@ export default function Home() {
           <div className="stat"><b>{fmt(stats?.archetypes)}</b><span>系列</span></div>
           <div className="stat"><b>{fmt(stats?.sets)}</b><span>卡包</span></div>
         </div>
-        <div className="hero-deco">
-          {hero.map((c) => <CardThumbnail key={c.id} card={c} />)}
-        </div>
       </section>
 
       <div style={{ maxWidth: 620, margin: "0 auto 8px" }}>
         <SearchBar value={q} onChange={setQ} onSubmit={go} />
       </div>
+
+      {hero.length > 0 && (
+        <>
+          <div className="section-head">
+            <h2>热门卡片</h2>
+            <Link to="/search">查看全部 →</Link>
+          </div>
+          <CardGrid cards={hero} showAttr />
+        </>
+      )}
 
       <div className="section-head">
         <h2>热门系列图鉴</h2>

@@ -26,14 +26,19 @@ export function Sets() {
         />
       </div>
       {loading ? <Spinner /> : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
+        <div className="sets-grid">
           {shown.slice(0, 200).map((s) => (
-            <Link key={s.code} to={`/sets/${s.code}`} className="chip" style={{ justifyContent: "space-between", padding: "14px 16px", borderRadius: "var(--radius)", background: "var(--bg-1)" }}>
-              <span>
-                <b style={{ color: "var(--text-0)", fontWeight: 600 }}>{s.en_name}</b>
-                <div className="muted" style={{ fontSize: 12, marginTop: 2 }}>{s.code} · {s.card_count} 张</div>
-              </span>
-              <span className="muted" style={{ fontSize: 12 }}>{s.release_date ? new Date(s.release_date * 1000).getFullYear() : ""}</span>
+            <Link key={s.code} to={`/sets/${s.code}`} className="set-card">
+              <div className="set-cover">
+                {s.cover_thumb_url
+                  ? <img src={s.cover_thumb_url} alt={s.en_name} />
+                  : <span className="set-cover-ph">🃏</span>}
+                {s.release_date && <span className="set-year">{new Date(s.release_date * 1000).getFullYear()}</span>}
+              </div>
+              <div className="set-meta">
+                <b>{s.en_name}</b>
+                <div className="muted">{s.code} · {s.card_count} 张</div>
+              </div>
             </Link>
           ))}
         </div>

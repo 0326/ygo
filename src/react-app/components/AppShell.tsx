@@ -52,7 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <>
       <header className="topnav">
         <div className="container" style={{ display: "flex", alignItems: "center", gap: 24, width: "100%" }}>
-          <Link to="/" className="brand">🃏 <span>哈基米<b>卡库</b></span></Link>
+          <Link to="/" className="brand">🃏 <span>游戏王<b>集卡社</b></span></Link>
           <nav>
             {links.map((l) => (
               <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "active" : "")}>
@@ -65,6 +65,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       </header>
 
       <main className="app-main">{children}</main>
+
+      <footer className="site-footer">
+        <div className="container">
+          <div className="sf-brand">🃏 游戏王<b>集卡社</b></div>
+          <div className="sf-copy">© {new Date().getFullYear()} 游戏王集卡社 · 卡图版权归 KONAMI 所有，本站仅供学习交流</div>
+          <div className="sf-social">@游戏王集卡社 · 抖音号 <b>ygoclub</b></div>
+        </div>
+      </footer>
 
       <nav className="bottomnav">
         {links.map((l) => (

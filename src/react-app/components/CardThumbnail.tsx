@@ -6,6 +6,7 @@ import { AttributeIcon, BanBadge } from "./badges";
 
 export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; showAttr?: boolean }) {
   const [loaded, setLoaded] = useState(false);
+  const [errored, setErrored] = useState(false);
   const c = frameColor(card.frame, card.scale != null);
   return (
     <Link
@@ -14,15 +15,20 @@ export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; s
       style={{ boxShadow: loaded ? `0 0 0 1px ${c.base}44` : undefined }}
       title={card.cn_name}
     >
-      {!loaded && <div className="ct-skel" />}
+      {!loaded && !errored && <div className="ct-skel" />}
       {/* 加载完成前不能 display:none——lazy 图片无布局盒就永远不进视口、永远不加载（死锁） */}
-      <img
-        src={card.thumb_url}
-        alt={card.cn_name}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        className={loaded ? undefined : "ct-img-loading"}
-      />
+      {errored ? (
+        <div className="ct-fallback">{card.cn_name}</div>
+      ) : (
+        <img
+          src={card.thumb_url}
+          alt={card.cn_name}
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onError={() => setErrored(true)}
+          className={loaded ? undefined : "ct-img-loading"}
+        />
+      )}
       {showAttr && card.attribute && (
         <span className="ct-badge"><AttributeIcon attr={card.attribute} size={22} /></span>
       )}
