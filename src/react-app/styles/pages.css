@@ -166,3 +166,13 @@
   border-left: 3px solid var(--gold-soft);
   padding: 12px 14px; border-radius: var(--radius-sm);
 }
+
+/* ---- 首页 hero 背景（M8）：卡图大图 + 深色渐变压暗，参考官方站视觉 ---- */
+.hero.hero-bg {
+  background-image:
+    linear-gradient(100deg, rgba(11,12,16,.97) 32%, rgba(11,12,16,.78) 58%, rgba(13,16,28,.5)),
+    url("/img/89631139/art");
+  background-size: cover;
+  background-position: center 28%;
+  border: 1px solid var(--line);
+}

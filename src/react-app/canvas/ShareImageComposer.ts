@@ -93,6 +93,7 @@ function toCardModel(item: ShareItem): CardModel {
     scale: c.scale,
     race: c.race ?? "",
     effect: "",
+    pendulumEffect: null,
     atk: c.atk,
     def: c.def,
     passcode: String(c.id),

@@ -32,7 +32,7 @@ export default function Home() {
 
   return (
     <div className="container page fade-in">
-      <section className="hero">
+      <section className="hero hero-bg">
         <h1>{t("home.heroTitle1")}<br /><span className="g">{t("home.heroTitle2")}</span>{t("home.heroTitle3")}</h1>
         <p>{t("home.heroSub")}</p>
         <div className="cta">

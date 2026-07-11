@@ -73,6 +73,7 @@ interface State {
   scale: string;
   race: string;
   effect: string;
+  pendulumEffect: string;
   atk: string; // "" 隐藏，"?" => -1
   def: string;
   passcode: string;
@@ -92,7 +93,8 @@ const DEFAULT_STATE: State = {
   scale: "4",
   race: "Spellcaster",
   effect:
-    "①：这张卡可以由你随意书写效果。\n②：这是一张由「哈基米卡库」制卡器生成的同人卡，仅供创作与欣赏，不可用于任何官方比赛。",
+    "①：这张卡可以由你随意书写效果。\n②：这是一张由「游戏王集卡社」制卡器生成的同人卡，仅供创作与欣赏，不可用于任何官方比赛。",
+  pendulumEffect: "",
   atk: "1800",
   def: "1200",
   passcode: "00000000",
@@ -130,6 +132,7 @@ function buildModel(s: State, art: HTMLImageElement | null): CardModel {
     scale: s.isPendulum ? parseNum(s.scale) : null,
     race: s.race,
     effect: s.effect,
+    pendulumEffect: s.isPendulum ? s.pendulumEffect : null,
     atk: s.cardType === "monster" ? parseStat(s.atk) : null,
     def: s.cardType === "monster" && !s.isLink ? parseStat(s.def) : null,
     passcode: s.passcode,
@@ -217,17 +220,24 @@ export default function CardMaker() {
         scale: c.scale != null ? String(c.scale) : s.scale,
         race: c.race ?? "",
         effect: c.effect_cn ?? "",
+        pendulumEffect: c.pendulum_effect_cn ?? "",
         atk: c.atk === -1 ? "?" : c.atk != null ? String(c.atk) : "",
         def: c.def === -1 ? "?" : c.def != null ? String(c.def) : "",
         passcode: String(c.id),
         linkMarkers: c.link_markers ?? [],
       }));
-      // 载入卡图（same-origin，不污染画布）
-      const url = c.artworks?.find((a) => a.is_default)?.url ?? c.artworks?.[0]?.url;
-      if (url) {
+      // 载入裁剪卡图（cards_cropped 仅美术区，避免整卡套进卡图框；same-origin 不污染画布）
+      const key = (c.artworks?.find((a) => a.is_default) ?? c.artworks?.[0])?.image_key ?? String(c.id);
+      if (key) {
         const img = new Image();
         img.onload = () => setArt(img);
-        img.src = url;
+        // art 变体缺图时回退整卡图
+        img.onerror = () => {
+          const fb = new Image();
+          fb.onload = () => setArt(fb);
+          fb.src = `/img/${key}`;
+        };
+        img.src = `/img/${key}/art`;
       }
       setPrefillMsg(`已预填：${c.cn_name}`);
     } catch {
@@ -507,6 +517,20 @@ export default function CardMaker() {
                 placeholder="效果文本将自动断行并适配卡面"
               />
             </fieldset>
+
+            {/* 灵摆效果（画进灵摆框） */}
+            {state.isPendulum && isMonster && !state.isLink && (
+              <fieldset className="maker-fs">
+                <legend>灵摆效果</legend>
+                <textarea
+                  className="maker-input maker-textarea"
+                  rows={3}
+                  value={state.pendulumEffect}
+                  onChange={(e) => set("pendulumEffect", e.target.value)}
+                  placeholder="显示在卡图下方的灵摆框内"
+                />
+              </fieldset>
+            )}
 
             {/* 卡图 */}
             <fieldset className="maker-fs">

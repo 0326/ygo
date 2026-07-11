@@ -86,10 +86,13 @@ app.get("/api/stats", (c) => cached(c, 3600, () => Q.stats(c.env.ygo_db)));
 
 // ---------- 卡图（M0.2：R2 自托管 + 懒回填） ----------
 app.get("/img/:key/s", (c) =>
-  proxyImage(c.req.raw, c.req.param("key"), true, c.env.IMG_BUCKET, c.executionCtx)
+  proxyImage(c.req.raw, c.req.param("key"), "small", c.env.IMG_BUCKET, c.executionCtx)
+);
+app.get("/img/:key/art", (c) =>
+  proxyImage(c.req.raw, c.req.param("key"), "art", c.env.IMG_BUCKET, c.executionCtx)
 );
 app.get("/img/:key", (c) =>
-  proxyImage(c.req.raw, c.req.param("key"), false, c.env.IMG_BUCKET, c.executionCtx)
+  proxyImage(c.req.raw, c.req.param("key"), "full", c.env.IMG_BUCKET, c.executionCtx)
 );
 
 app.get("/api/*", (c) => c.json({ error: "unknown endpoint" }, 404));
