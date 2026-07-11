@@ -15,12 +15,13 @@ export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; s
       title={card.cn_name}
     >
       {!loaded && <div className="ct-skel" />}
+      {/* 加载完成前不能 display:none——lazy 图片无布局盒就永远不进视口、永远不加载（死锁） */}
       <img
         src={card.thumb_url}
         alt={card.cn_name}
         loading="lazy"
         onLoad={() => setLoaded(true)}
-        style={{ display: loaded ? "block" : "none" }}
+        className={loaded ? undefined : "ct-img-loading"}
       />
       {showAttr && card.attribute && (
         <span className="ct-badge"><AttributeIcon attr={card.attribute} size={22} /></span>
