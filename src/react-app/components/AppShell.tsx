@@ -14,6 +14,67 @@ const links = [
   { to: "/share", key: "nav.share" },
 ] as const;
 
+// 友情链接：全量收录游戏王官方站点 / 游戏 / 模拟器 / 资料库 / 卡查 / Meta / 市场，聚合成 5 类
+const friendLinks: { groupKey: string; items: { name: string; url: string }[] }[] = [
+  {
+    groupKey: "footer.grpOfficial",
+    items: [
+      { name: "游戏王卡游总站 (JP)", url: "https://www.konami.com/yugioh/" },
+      { name: "官方海外站 TCG", url: "https://www.yugioh-card.com/en/" },
+      { name: "官方 OCG (日本)", url: "https://www.yugioh-card.com/japan/" },
+      { name: "官方简中卡查", url: "https://db.yugioh-card-cn.com/" },
+      { name: "官方卡查 Neuron (EN)", url: "https://www.db.yugioh-card.com/yugiohdb/?request_locale=en" },
+      { name: "官方卡查 Neuron (JP)", url: "https://www.db.yugioh-card.com/yugiohdb/?request_locale=ja" },
+      { name: "禁限卡表", url: "https://www.db.yugioh-card.com/yugiohdb/forbidden_limited.action" },
+      { name: "YU-GI-OH.jp 资讯/动画", url: "https://yu-gi-oh.jp/" },
+    ],
+  },
+  {
+    groupKey: "footer.grpGames",
+    items: [
+      { name: "Master Duel 大师决斗", url: "https://www.konami.com/yugioh/masterduel/" },
+      { name: "Duel Links 决斗链接", url: "https://www.konami.com/yugioh/duel_links/" },
+      { name: "Rush Duel 高速决斗", url: "https://www.konami.com/yugioh/rushduel/" },
+      { name: "YGO Omega", url: "https://omega.duelistsunite.org/" },
+      { name: "Project Ignis · EDOPro", url: "https://projectignis.github.io/" },
+      { name: "Dueling Book", url: "https://www.duelingbook.com/" },
+      { name: "Dueling Nexus", url: "https://duelingnexus.com/" },
+      { name: "MyCard 萌卡 · YGOPro", url: "https://mycard.moe/" },
+    ],
+  },
+  {
+    groupKey: "footer.grpWiki",
+    items: [
+      { name: "Yugipedia", url: "https://yugipedia.com/" },
+      { name: "Yu-Gi-Oh! Wiki (Fandom)", url: "https://yugioh.fandom.com/" },
+      { name: "YGOPRODeck", url: "https://ygoprodeck.com/" },
+      { name: "YGOrganization 资讯", url: "https://ygorganization.com/" },
+      { name: "Format Library", url: "https://www.formatlibrary.com/" },
+    ],
+  },
+  {
+    groupKey: "footer.grpCommunity",
+    items: [
+      { name: "百鸽 · YGOCDB", url: "https://ygocdb.com/" },
+      { name: "我们的 OCG · Ourocg", url: "https://www.ourocg.cn/" },
+      { name: "DuelMeta 上位卡组", url: "https://db.duelmeta.com/" },
+      { name: "NGA 游戏王", url: "https://bbs.nga.cn/thread.php?fid=-152678" },
+      { name: "Reddit r/yugioh", url: "https://www.reddit.com/r/yugioh/" },
+    ],
+  },
+  {
+    groupKey: "footer.grpMeta",
+    items: [
+      { name: "Yu-Gi-Oh! Meta", url: "https://www.yugiohmeta.com/" },
+      { name: "Master Duel Meta", url: "https://www.masterduelmeta.com/" },
+      { name: "Cardcluster 组卡", url: "https://cardcluster.com/" },
+      { name: "TCGplayer 卡价", url: "https://www.tcgplayer.com/categories/trading-and-collectible-card-games/yugioh" },
+      { name: "Cardmarket (EU)", url: "https://www.cardmarket.com/en/YuGiOh" },
+      { name: "Pojo 论坛", url: "https://www.pojo.biz/board/" },
+    ],
+  },
+];
+
 const Icon = ({ d }: { d: string }) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d={d} />
@@ -86,6 +147,25 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <footer className="site-footer">
         <div className="container">
+          <div className="sf-links">
+            <div className="sf-links-title">{t("footer.links")}</div>
+            <div className="sf-links-grid">
+              {friendLinks.map((col) => (
+                <div key={col.groupKey} className="sf-links-col">
+                  <div className="sf-links-group">{t(col.groupKey as Parameters<typeof t>[0])}</div>
+                  <ul>
+                    {col.items.map((it) => (
+                      <li key={it.url}>
+                        <a href={it.url} target="_blank" rel="noopener noreferrer">
+                          {it.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
           <div className="sf-brand">🃏 游戏王<b>集卡社</b></div>
           <div className="sf-copy">© {new Date().getFullYear()} 游戏王集卡社 · {t("footer.copy")}</div>
           <div className="sf-social">@游戏王集卡社 · 抖音号 <b>ygoclub</b></div>

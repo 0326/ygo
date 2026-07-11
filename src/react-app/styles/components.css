@@ -96,6 +96,33 @@
 .site-footer .container {
   display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
 }
+/* 友情链接 */
+.site-footer .sf-links {
+  width: 100%; max-width: 1120px; margin: 0 auto var(--sp-5);
+  padding-bottom: var(--sp-5); border-bottom: 1px solid var(--line);
+}
+.site-footer .sf-links-title {
+  font-family: var(--font-display); font-weight: 800; font-size: 14px;
+  letter-spacing: .06em; color: var(--gold-soft); margin-bottom: var(--sp-4);
+}
+.site-footer .sf-links-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-5) var(--sp-6); text-align: left;
+}
+.site-footer .sf-links-group {
+  font-size: 12px; font-weight: 700; letter-spacing: .04em;
+  color: var(--text-2); text-transform: uppercase; margin-bottom: 10px;
+}
+.site-footer .sf-links-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.site-footer .sf-links-col a {
+  color: var(--text-1); font-size: 13px; text-decoration: none;
+  transition: color .15s ease;
+}
+.site-footer .sf-links-col a:hover { color: var(--gold); }
+@media (max-width: 720px) {
+  .site-footer .sf-links-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .site-footer .sf-links-title { text-align: center; }
+}
 .site-footer .sf-brand { font-family: var(--font-display); font-weight: 800; font-size: 18px; }
 .site-footer .sf-brand b { color: var(--gold); }
 .site-footer .sf-copy { color: var(--text-2); font-size: 13px; }

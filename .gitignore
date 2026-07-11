@@ -207,4 +207,6 @@ dist
 /data/seed.sql
 /data/normalized.json
 /data/ygoprodeck-sets.json
+/data/.sync-state.json
+/data/*.download
 pnpm-lock.yaml

@@ -38,10 +38,28 @@ npm run dev             # http://localhost:5173
 
 ## 数据来源（M0.1 管线）
 
-- **简中名称 / 效果**：[mycard/ygopro-database](https://github.com/mycard/ygopro-database) 的 `locales/zh-CN/cards.cdb`（SQLite）。
-- **结构化字段 / 异画 / 收录罕贵 / 卡图**：[YGOPRODeck API](https://db.ygoprodeck.com/api/v7/cardinfo.php)。
+- **简中名称 / 效果**：[mycard/ygopro-database](https://github.com/mycard/ygopro-database) 的 `locales/zh-CN/cards.cdb`（SQLite）；日文来自 `locales/ja-JP/cards.cdb`。
+- **结构化字段 / 异画 / 收录罕贵 / 卡图 / 禁限 / 赛制**：[YGOPRODeck API](https://db.ygoprodeck.com/api/v7/cardinfo.php)（`?misc=yes`）。
 
 两者以**卡密(passcode)**为键 join。`scripts/build-data.mjs` 产出 `data/seed.sql`。原始 dump 与 seed 均 gitignore，不入库。
+
+### 自动同步（最新卡牌数据）
+
+`scripts/sync-data.mjs` 一键同步：拉取上游最新源 → 派生 `formats.json`/`md-rarity.json` → 重建 seed → 写入 D1。
+带版本指纹（YGOPRODeck `checkDBVer` + 两个 cdb 的 sha256，存于 `data/.sync-state.json`），上游没更新且目标已写入时自动跳过。
+
+```bash
+npm run data:sync           # 只下载 + 重建 seed，不动数据库
+npm run data:sync:local     # 同步并写入本地 D1
+npm run data:sync:remote    # 同步并写入远端 D1（生产）
+# 其他参数：--force 强制重建；--skip-download 用现有源文件重建（调试）
+```
+
+**定时自动同步**：GitHub Actions [`sync-data.yml`](.github/workflows/sync-data.yml) 每周二/五（北京时间 05:00）
+自动同步远端 D1，也可在 Actions 页手动触发。需在仓库 Settings → Secrets 配置：
+
+- `CLOUDFLARE_API_TOKEN`（权限：Account → D1 → Edit）
+- `CLOUDFLARE_ACCOUNT_ID`
 卡图经我方 Worker `/img/:key` 代理 + 边缘缓存（自托管而非热链，符合 ygoprodeck 要求）；终态迁移到 R2 `img.hajimikitty.com` 时前端无感。
 
 ## 部署到 Cloudflare（生产）
@@ -56,7 +74,7 @@ npm run deploy
 ```
 
 生产卡图建议改用 R2：拉图 → 转 webp（列表缩略 + 详情 600px）→ R2 → 绑定 `img.hajimikitty.com`，并把
-`src/worker/lib/images.ts` 的 origin 切到 R2。新卡自动入库可加 Cron Worker 定时跑数据管线。
+`src/worker/lib/images.ts` 的 origin 切到 R2。新卡自动入库由 GitHub Actions 定时同步（见「自动同步」）。
 
 ## 目录结构
 
@@ -81,6 +99,8 @@ src/react-app/
 | `npm run build` | 类型检查 + 生产构建 |
 | `npm run lint` | ESLint |
 | `npm run data:build` | 重建 `data/seed.sql` |
+| `npm run data:sync` | 拉取上游最新卡牌数据并重建 seed |
+| `npm run data:sync:local` / `:remote` | 同步并写入本地 / 远端 D1 |
 | `npm run db:setup` | 本地 D1 建表 + 灌库 |
 | `npm run deploy` | 部署到 Cloudflare |
 

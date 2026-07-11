@@ -22,7 +22,7 @@ const CN = {
   "common.viewAll": "查看全部 →", "common.empty": "没有匹配的卡片，换个条件试试",
   "common.searchPlaceholder": "搜索卡名 / 效果…", "common.cards": "张",
   // 首页
-  "home.heroTitle1": "全卡片 · 全系列 · 中日英三语", "home.heroTitle2": "为决斗者而生", "home.heroTitle3": "的游戏王资料库",
+  "home.heroTitle1": "全卡片 · 全系列", "home.heroTitle2": "为决斗者而生", "home.heroTitle3": "的游戏王资料库",
   "home.heroSub": "查卡、禁限、系列图鉴、组卡与制卡，一站式完成。",
   "home.ctaSearch": "开始查卡", "home.ctaArchetypes": "逛系列图鉴", "home.ctaMaker": "试试制卡器 →",
   "home.statCards": "收录卡片", "home.statArtworks": "卡图(含异画)", "home.statArchetypes": "系列", "home.statSets": "卡包",
@@ -81,6 +81,12 @@ const CN = {
   "deck.save": "保存卡组", "deck.saveName": "给卡组起个名字", "deck.saved": "已保存到我的卡组",
   // 页脚
   "footer.copy": "卡图版权归 KONAMI 所有，本站仅供学习交流",
+  "footer.links": "友情链接",
+  "footer.grpOfficial": "官方网站 · 数据库",
+  "footer.grpGames": "官方游戏 · 模拟器",
+  "footer.grpWiki": "资料库 · Wiki",
+  "footer.grpCommunity": "中文卡查 · 社区",
+  "footer.grpMeta": "Meta · 攻略 · 市场",
   // 赛制标记
   "fmt.ocgOnly": "OCG 专属", "fmt.tcgOnly": "TCG 专属",
 };
@@ -93,7 +99,7 @@ const JP: Record<UIKey, string> = {
   "common.search": "検索", "common.retry": "再試行", "common.prev": "前へ", "common.next": "次へ",
   "common.viewAll": "すべて見る →", "common.empty": "該当するカードがありません。条件を変えてみてください",
   "common.searchPlaceholder": "カード名 / テキストを検索…", "common.cards": "枚",
-  "home.heroTitle1": "全カード · 全テーマ · 三言語対応", "home.heroTitle2": "デュエリストのため", "home.heroTitle3": "の遊戯王データベース",
+  "home.heroTitle1": "全カード · 全テーマ", "home.heroTitle2": "デュエリストのため", "home.heroTitle3": "の遊戯王データベース",
   "home.heroSub": "カード検索・禁止制限・テーマ図鑑・デッキ構築・カードメーカーを一つに。",
   "home.ctaSearch": "検索を始める", "home.ctaArchetypes": "テーマ図鑑へ", "home.ctaMaker": "カードメーカー →",
   "home.statCards": "収録カード", "home.statArtworks": "カード画像(別イラスト含む)", "home.statArchetypes": "テーマ", "home.statSets": "パック",
@@ -145,6 +151,12 @@ const JP: Record<UIKey, string> = {
   "fav.add": "☆ お気に入り", "fav.added": "★ 登録済み", "fav.loginFirst": "ログインするとお気に入りできます",
   "deck.save": "デッキを保存", "deck.saveName": "デッキ名を入力", "deck.saved": "マイデッキに保存しました",
   "footer.copy": "カード画像の著作権は KONAMI に帰属します。本サイトは学習・交流用です",
+  "footer.links": "関連リンク",
+  "footer.grpOfficial": "公式サイト · データベース",
+  "footer.grpGames": "公式ゲーム · シミュレーター",
+  "footer.grpWiki": "データベース · Wiki",
+  "footer.grpCommunity": "カード検索 · コミュニティ",
+  "footer.grpMeta": "環境 · 攻略 · 相場",
   "fmt.ocgOnly": "OCG 限定", "fmt.tcgOnly": "TCG 限定",
 };
 
@@ -154,7 +166,7 @@ const EN: Record<UIKey, string> = {
   "common.search": "Search", "common.retry": "Retry", "common.prev": "Prev", "common.next": "Next",
   "common.viewAll": "View all →", "common.empty": "No cards matched. Try different filters",
   "common.searchPlaceholder": "Search card name / text…", "common.cards": "cards",
-  "home.heroTitle1": "Every card · Every archetype · CN/JP/EN", "home.heroTitle2": "A Yu-Gi-Oh! database", "home.heroTitle3": " built for duelists",
+  "home.heroTitle1": "Every card · Every archetype", "home.heroTitle2": "A Yu-Gi-Oh! database", "home.heroTitle3": " built for duelists",
   "home.heroSub": "Card search, banlists, archetypes, deck building and card maker — all in one place.",
   "home.ctaSearch": "Search cards", "home.ctaArchetypes": "Browse archetypes", "home.ctaMaker": "Try card maker →",
   "home.statCards": "Cards", "home.statArtworks": "Artworks (incl. alts)", "home.statArchetypes": "Archetypes", "home.statSets": "Sets",
@@ -206,6 +218,12 @@ const EN: Record<UIKey, string> = {
   "fav.add": "☆ Favorite", "fav.added": "★ Favorited", "fav.loginFirst": "Log in to favorite",
   "deck.save": "Save deck", "deck.saveName": "Name your deck", "deck.saved": "Saved to my decks",
   "footer.copy": "Card images © KONAMI. This site is for learning and communication only",
+  "footer.links": "Related Links",
+  "footer.grpOfficial": "Official & Database",
+  "footer.grpGames": "Games & Simulators",
+  "footer.grpWiki": "Wikis & Databases",
+  "footer.grpCommunity": "Card Search & Community",
+  "footer.grpMeta": "Meta & Market",
   "fmt.ocgOnly": "OCG only", "fmt.tcgOnly": "TCG only",
 };
 
