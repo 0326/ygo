@@ -75,3 +75,40 @@
   .deck-pool { position: static; }
   .deck-bar { position: static; }
 }
+
+/* ---- M6: 赛制 / 导入 / 校验 / 统计 ---- */
+.deck-format { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; margin-right: 4px; }
+.fmt-tab { padding: 6px 11px; background: var(--bg-2); color: var(--text-2); font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
+.fmt-tab + .fmt-tab { border-left: 1px solid var(--line); }
+.fmt-tab.on { background: var(--gold); color: #2a2208; }
+
+.deck-errors { margin-top: 12px; display: flex; flex-direction: column; gap: 4px; }
+.deck-err { color: #ff9a8a; font-size: 13px; background: rgba(192,57,43,.10); border-left: 3px solid #c0392b; padding: 5px 10px; border-radius: var(--radius-sm); }
+
+.pool-card { position: relative; }
+.pool-ban { position: absolute; top: 4px; right: 4px; }
+.zone-ban { position: absolute; top: 2px; left: 2px; }
+
+.deck-stats { margin-top: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;
+  background: var(--bg-1); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.ds-block h4 { font-size: 13px; color: var(--gold-soft); margin: 0 0 10px; }
+.ds-types { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.ds-type { font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: #fff; }
+.ds-type.mon { background: #b05a2b; }
+.ds-type.spell { background: #1d9b8a; }
+.ds-type.trap { background: #b03a7a; }
+.ds-attrs { display: flex; gap: 6px; flex-wrap: wrap; }
+.ds-attr { font-size: 12px; padding: 2px 8px; border: 1px solid; border-radius: 999px; color: var(--text-1); }
+
+.ds-curve { display: flex; align-items: flex-end; gap: 6px; height: 92px; }
+.ds-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.ds-bar { width: 100%; max-width: 22px; min-height: 3px; background: linear-gradient(var(--gold-soft), var(--gold)); border-radius: 3px 3px 0 0; }
+.ds-bar-n { font-size: 11px; color: var(--text-1); margin-top: 2px; }
+.ds-bar-lv { font-size: 11px; color: var(--text-2); }
+
+.ds-prob { display: flex; flex-direction: column; gap: 8px; }
+.ds-prob-row { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.ds-prob-k { width: 86px; color: var(--text-1); }
+.ds-prob-bar { flex: 1; height: 8px; background: var(--bg-3); border-radius: 999px; overflow: hidden; }
+.ds-prob-bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold-soft), var(--gold)); }
+.ds-prob-v { width: 48px; text-align: right; color: var(--text-0); font-weight: 600; }
