@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { CardSummary, SetSummary, WallpaperItem, UserDeck } from "../../shared/types";
 import { cardsByIds, listSets, listWallpapers, listMyDecks, deleteMyDeck } from "../lib/api";
 import { useUser } from "../lib/user";
-import { useLang } from "../lib/i18n";
+import { useLang, setName } from "../lib/i18n";
 import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, Empty } from "../components/common";
 import { decodeDeck } from "../lib/deck";
@@ -76,7 +76,7 @@ function FavCards({ ids }: { ids: string[] }) {
 }
 
 function FavSets({ codes }: { codes: string[] }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [sets, setSets] = useState<SetSummary[] | null>(null);
   useEffect(() => {
     if (!codes.length) { setSets([]); return; }
@@ -92,11 +92,11 @@ function FavSets({ codes }: { codes: string[] }) {
       {sets.map((s) => (
         <Link key={s.code} to={`/sets/${s.code}`} className="set-card">
           <div className="set-cover">
-            {s.cover_thumb_url ? <img src={s.cover_thumb_url} alt={s.en_name} /> : <span className="set-cover-ph">🃏</span>}
+            {s.cover_thumb_url ? <img src={s.cover_thumb_url} alt={setName(s, lang)} /> : <span className="set-cover-ph">🃏</span>}
             {s.release_date && <span className="set-year">{new Date(s.release_date * 1000).getFullYear()}</span>}
           </div>
           <div className="set-meta">
-            <b>{s.en_name}</b>
+            <b>{setName(s, lang)}</b>
             <div className="muted">{s.code} · {s.card_count} {t("common.cards")}</div>
           </div>
         </Link>

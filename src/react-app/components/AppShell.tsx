@@ -17,7 +17,10 @@ const links = [
 ] as const;
 
 // 友情链接：全量收录游戏王官方站点 / 游戏 / 模拟器 / 资料库 / 卡查 / Meta / 市场，聚合成 5 类
-const friendLinks: { groupKey: string; items: { name: string; url: string }[] }[] = [
+const friendLinks: {
+  groupKey: string;
+  items: { name: string; url: string }[];
+}[] = [
   {
     groupKey: "footer.grpOfficial",
     items: [
@@ -25,20 +28,41 @@ const friendLinks: { groupKey: string; items: { name: string; url: string }[] }[
       { name: "官方海外站 TCG", url: "https://www.yugioh-card.com/en/" },
       { name: "官方 OCG (日本)", url: "https://www.yugioh-card.com/japan/" },
       { name: "官方简中卡查", url: "https://db.yugioh-card-cn.com/" },
-      { name: "官方卡查 Neuron (EN)", url: "https://www.db.yugioh-card.com/yugiohdb/?request_locale=en" },
-      { name: "官方卡查 Neuron (JP)", url: "https://www.db.yugioh-card.com/yugiohdb/?request_locale=ja" },
-      { name: "禁限卡表", url: "https://www.db.yugioh-card.com/yugiohdb/forbidden_limited.action" },
+      {
+        name: "官方卡查 Neuron (EN)",
+        url: "https://www.db.yugioh-card.com/yugiohdb/?request_locale=en",
+      },
+      {
+        name: "官方卡查 Neuron (JP)",
+        url: "https://www.db.yugioh-card.com/yugiohdb/?request_locale=ja",
+      },
+      {
+        name: "禁限卡表",
+        url: "https://www.db.yugioh-card.com/yugiohdb/forbidden_limited.action",
+      },
       { name: "YU-GI-OH.jp 资讯/动画", url: "https://yu-gi-oh.jp/" },
     ],
   },
   {
     groupKey: "footer.grpGames",
     items: [
-      { name: "Master Duel 大师决斗", url: "https://www.konami.com/yugioh/masterduel/" },
-      { name: "Duel Links 决斗链接", url: "https://www.konami.com/yugioh/duel_links/" },
-      { name: "Rush Duel 高速决斗", url: "https://www.konami.com/yugioh/rushduel/" },
+      {
+        name: "Master Duel 大师决斗",
+        url: "https://www.konami.com/yugioh/masterduel/",
+      },
+      {
+        name: "Duel Links 决斗链接",
+        url: "https://www.konami.com/yugioh/duel_links/",
+      },
+      {
+        name: "Rush Duel 高速决斗",
+        url: "https://www.konami.com/yugioh/rushduel/",
+      },
       { name: "YGO Omega", url: "https://omega.duelistsunite.org/" },
-      { name: "Project Ignis · EDOPro", url: "https://projectignis.github.io/" },
+      {
+        name: "Project Ignis · EDOPro",
+        url: "https://projectignis.github.io/",
+      },
       { name: "Dueling Book", url: "https://www.duelingbook.com/" },
       { name: "Dueling Nexus", url: "https://duelingnexus.com/" },
       { name: "MyCard 萌卡 · YGOPro", url: "https://mycard.moe/" },
@@ -70,7 +94,10 @@ const friendLinks: { groupKey: string; items: { name: string; url: string }[] }[
       { name: "Yu-Gi-Oh! Meta", url: "https://www.yugiohmeta.com/" },
       { name: "Master Duel Meta", url: "https://www.masterduelmeta.com/" },
       { name: "Cardcluster 组卡", url: "https://cardcluster.com/" },
-      { name: "TCGplayer 卡价", url: "https://www.tcgplayer.com/categories/trading-and-collectible-card-games/yugioh" },
+      {
+        name: "TCGplayer 卡价",
+        url: "https://www.tcgplayer.com/categories/trading-and-collectible-card-games/yugioh",
+      },
       { name: "Cardmarket (EU)", url: "https://www.cardmarket.com/en/YuGiOh" },
       { name: "Pojo 论坛", url: "https://www.pojo.biz/board/" },
     ],
@@ -78,7 +105,14 @@ const friendLinks: { groupKey: string; items: { name: string; url: string }[] }[
 ];
 
 const Icon = ({ d }: { d: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d={d} />
   </svg>
 );
@@ -89,7 +123,8 @@ const ICONS: Record<string, string> = {
   "/maker": "M12 19l7-7 3 3-7 7-3-3zM2 2l7.5 7.5M11 11l-9 9",
   "/deck": "M4 7h10v13H4zM9 4h11v13",
   // "/share": "M4 12v8h16v-8M16 6l-4-4-4 4M12 2v14",
-  "/feedback": "M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z",
+  "/feedback":
+    "M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z",
   "/wallpapers": "M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 5",
 };
 
@@ -102,15 +137,29 @@ export function AppShell({ children }: { children: ReactNode }) {
     const h = (e: KeyboardEvent) => {
       if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
       const el = document.activeElement as HTMLElement | null;
-      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+      if (
+        el &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.tagName === "SELECT" ||
+          el.isContentEditable)
+      )
+        return;
       e.preventDefault();
-      const input = document.querySelector<HTMLInputElement>(".searchbar input");
+      const input =
+        document.querySelector<HTMLInputElement>(".searchbar input");
       if (input) {
         input.focus();
       } else {
         navigate("/search");
         // 等路由渲染完成后聚焦新页面的搜索框
-        setTimeout(() => document.querySelector<HTMLInputElement>(".searchbar input")?.focus(), 100);
+        setTimeout(
+          () =>
+            document
+              .querySelector<HTMLInputElement>(".searchbar input")
+              ?.focus(),
+          100,
+        );
       }
     };
     window.addEventListener("keydown", h);
@@ -120,11 +169,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <>
       <header className="topnav">
-        <div className="container" style={{ display: "flex", alignItems: "center", gap: 24, width: "100%" }}>
-          <Link to="/" className="brand">🃏 <span>游戏王<b>集卡社</b></span></Link>
+        <div
+          className="container"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 24,
+            width: "100%",
+          }}
+        >
+          <Link to="/" className="brand">
+            🃏{" "}
+            <span>
+              游戏王<b>集卡社</b>
+            </span>
+          </Link>
           <nav>
             {links.map((l) => (
-              <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "active" : "")}>
+              <NavLink
+                key={l.to}
+                to={l.to}
+                className={({ isActive }) => (isActive ? "active" : "")}
+              >
                 {t(l.key)}
               </NavLink>
             ))}
@@ -155,11 +221,17 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="sf-links-grid">
               {friendLinks.map((col) => (
                 <div key={col.groupKey} className="sf-links-col">
-                  <div className="sf-links-group">{t(col.groupKey as Parameters<typeof t>[0])}</div>
+                  <div className="sf-links-group">
+                    {t(col.groupKey as Parameters<typeof t>[0])}
+                  </div>
                   <ul>
                     {col.items.map((it) => (
                       <li key={it.url}>
-                        <a href={it.url} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={it.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           {it.name}
                         </a>
                       </li>
@@ -171,9 +243,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="sf-main">
             <div className="sf-info">
-              <div className="sf-brand">🃏 游戏王<b>集卡社</b></div>
-              <div className="sf-social">@游戏王集卡社 · 抖音号 <b>ygoclub</b></div>
-              <div className="sf-copy">© {new Date().getFullYear()} 游戏王集卡社 · {t("footer.copy")}</div>
+              {/* <div className="sf-brand">🃏 游戏王<b>集卡社</b></div> */}
+              <div className="sf-social">
+                @游戏王集卡社 · 抖音号 <b>ygoclub</b>
+              </div>
+              <div className="sf-copy">
+                © {new Date().getFullYear()} 游戏王集卡社 · {t("footer.copy")}
+              </div>
             </div>
             <ul className="sf-disclaimer">
               <li>{t("footer.disclaimer1")}</li>
@@ -186,7 +262,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <nav className="bottomnav">
         {links.map((l) => (
-          <NavLink key={l.to} to={l.to} className={({ isActive }) => (isActive ? "active" : "")}>
+          <NavLink
+            key={l.to}
+            to={l.to}
+            className={({ isActive }) => (isActive ? "active" : "")}
+          >
             <Icon d={ICONS[l.to]} />
             {t(l.key)}
           </NavLink>
@@ -201,10 +281,17 @@ function AuthEntry() {
   const { me } = useUser();
   const { t } = useLang();
   if (me === undefined) return <span className="auth-entry" />;
-  if (!me) return <Link className="auth-entry btn" to="/login">{t("auth.login")}</Link>;
+  if (!me)
+    return (
+      <Link className="auth-entry btn" to="/login">
+        {t("auth.login")}
+      </Link>
+    );
   return (
     <Link className="auth-entry btn" to="/me" title={t("me.title")}>
-      <span className="auth-avatar">{me.username.slice(0, 1).toUpperCase()}</span>
+      <span className="auth-avatar">
+        {me.username.slice(0, 1).toUpperCase()}
+      </span>
       <span className="auth-name">{me.username}</span>
     </Link>
   );

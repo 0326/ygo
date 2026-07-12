@@ -2,7 +2,7 @@
 // 将若干已选卡片合成一张「天生适合截图转发」的竖向海报长图。
 // 默认使用真实卡图缩略图；可选复用 CardCanvasRenderer 的「渲染为卡面」模式。
 
-import type { CardSummary } from "../../shared/types";
+import type { CardSummary, Lang } from "../../shared/types";
 import {
   ATTR_CN,
   ATTR_COLOR,
@@ -23,6 +23,14 @@ export interface ShareOptions {
   subtitle: string; // 副标题/口号
   layout: "list" | "grid" | "cards"; // 列表 / 网格 / 卡面
   width?: number; // 输出宽度（默认 1080，适配手机竖屏分享）
+  lang?: Lang; // 卡名显示语言（默认 cn）
+}
+
+// 按语言选卡名（与 i18n.cardName 同逻辑，避免在 canvas 模块引入 React 上下文）
+function pickName(c: CardSummary, lang: Lang): string {
+  if (lang === "jp") return c.jp_name || c.en_name || c.cn_name;
+  if (lang === "en") return c.en_name || c.cn_name;
+  return c.cn_name || c.en_name;
 }
 
 const SITE_NAME = "游戏王集卡社";
@@ -78,13 +86,13 @@ function drawImageCover(
 }
 
 /** 把 CardSummary 转换为渲染器需要的 CardModel（卡面模式用） */
-function toCardModel(item: ShareItem): CardModel {
+function toCardModel(item: ShareItem, lang: Lang): CardModel {
   const c = item.card;
   return {
     frame: c.frame,
     isPendulum: c.scale != null,
     cardType: c.card_type,
-    name: c.cn_name,
+    name: pickName(c, lang),
     attribute: c.attribute,
     level: c.level,
     isRank: c.frame === "xyz",
@@ -249,6 +257,7 @@ function drawListRow(
   h: number,
   index: number,
   W: number,
+  lang: Lang,
 ): void {
   const c = item.card;
   const fc = frameColor(c.frame, c.scale != null);
@@ -292,14 +301,15 @@ function drawListRow(
   ctx.fillText(String(index + 1).padStart(2, "0"), tx, y + h * 0.28);
 
   // 名称（收缩）
+  const cname = pickName(c, lang);
   let namePx = W * 0.046;
   ctx.font = `700 ${namePx}px ${DISPLAY_FONT}`;
-  while (ctx.measureText(c.cn_name).width > tw - W * 0.06 && namePx > 14) {
+  while (ctx.measureText(cname).width > tw - W * 0.06 && namePx > 14) {
     namePx -= 1;
     ctx.font = `700 ${namePx}px ${DISPLAY_FONT}`;
   }
   ctx.fillStyle = "#f4f1ea";
-  ctx.fillText(c.cn_name, tx + W * 0.05, y + h * 0.3);
+  ctx.fillText(cname, tx + W * 0.05, y + h * 0.3);
 
   // 标签行：卡框 + 种族 + 等级
   const tags: string[] = [FRAME_CN[c.frame] || c.frame];
@@ -393,12 +403,13 @@ export async function composeShareImage(
   const padX = W * 0.05;
   let cy = drawHeader(ctx, opts, W);
   cy += W * 0.03;
+  const lang = opts.lang ?? "cn";
 
   if (opts.layout === "list") {
     const rowH = W * 0.2;
     const gap = W * 0.025;
     items.forEach((it, i) => {
-      drawListRow(ctx, it, padX, cy, W - padX * 2, rowH, i, W);
+      drawListRow(ctx, it, padX, cy, W - padX * 2, rowH, i, W, lang);
       cy += rowH + gap;
     });
   } else if (opts.layout === "grid") {
@@ -411,7 +422,7 @@ export async function composeShareImage(
       const row = Math.floor(i / cols);
       const x = padX + col * (cellW + gap);
       const y = cy + row * (cellH + gap);
-      drawGridCell(ctx, it, x, y, cellW, W);
+      drawGridCell(ctx, it, x, y, cellW, W, lang);
     });
     const rows = Math.ceil(items.length / cols);
     cy += rows * (cellH + gap);
@@ -428,7 +439,7 @@ export async function composeShareImage(
       const y = cy + row * (cellH + gap);
       ctx.save();
       ctx.translate(x, y);
-      await renderCard(ctx, toCardModel(items[i]), { width: cellW });
+      await renderCard(ctx, toCardModel(items[i], lang), { width: cellW });
       ctx.restore();
     }
     const rows = Math.ceil(items.length / cols);
@@ -446,6 +457,7 @@ function drawGridCell(
   y: number,
   w: number,
   W: number,
+  lang: Lang,
 ): void {
   const c = item.card;
   const fc = frameColor(c.frame, c.scale != null);
@@ -466,16 +478,17 @@ function drawGridCell(
   ctx.strokeStyle = fc.base + "88";
   ctx.stroke();
   // 名称
+  const cname = pickName(c, lang);
   let namePx = W * 0.03;
   ctx.font = `700 ${namePx}px ${DISPLAY_FONT}`;
-  while (ctx.measureText(c.cn_name).width > w && namePx > 11) {
+  while (ctx.measureText(cname).width > w && namePx > 11) {
     namePx -= 1;
     ctx.font = `700 ${namePx}px ${DISPLAY_FONT}`;
   }
   ctx.fillStyle = "#f4f1ea";
   ctx.textAlign = "left";
   ctx.textBaseline = "alphabetic";
-  ctx.fillText(c.cn_name, x, y + imgH + W * 0.04);
+  ctx.fillText(cname, x, y + imgH + W * 0.04);
   // 副信息
   ctx.fillStyle = "#b8bcc6";
   ctx.font = `400 ${W * 0.022}px ${BODY_FONT}`;

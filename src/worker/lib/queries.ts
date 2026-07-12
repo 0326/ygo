@@ -302,15 +302,16 @@ export async function getArtworks(db: D1Database, id: number): Promise<Artwork[]
 async function getPrints(db: D1Database, id: number): Promise<Print[]> {
   const { results } = await db
     .prepare(
-      `SELECT p.set_code,p.rarity,p.card_number,s.en_name AS set_name,s.release_date
+      `SELECT p.set_code,p.rarity,p.card_number,s.cn_name AS set_cn_name,s.en_name AS set_name,s.release_date
        FROM card_prints p LEFT JOIN sets s ON s.code=p.set_code
        WHERE p.card_id=? ORDER BY s.release_date IS NULL, s.release_date, p.card_number`
     )
     .bind(id)
-    .all<{ set_code: string; rarity: string | null; card_number: string; set_name: string; release_date: number | null }>();
+    .all<{ set_code: string; rarity: string | null; card_number: string; set_cn_name: string | null; set_name: string; release_date: number | null }>();
   return (results || []).map((r) => ({
     set_code: r.set_code,
     set_name: r.set_name || r.set_code,
+    set_cn_name: r.set_cn_name,
     rarity: r.rarity,
     card_number: r.card_number,
     release_date: r.release_date,

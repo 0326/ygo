@@ -9,7 +9,7 @@ import { useLang } from "../lib/i18n";
 
 export default function Home() {
   const nav = useNavigate();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [q, setQ] = useState("");
   const [stats, setStats] = useState<{ cards: number; archetypes: number; artworks: number; sets: number } | null>(null);
   const [series, setSeries] = useState<ArchetypeSummary[]>([]);
@@ -25,8 +25,8 @@ export default function Home() {
     document.title = "游戏王集卡社 · 游戏王卡图 / 图鉴 / 制卡器";
     getStats().then(setStats).catch(() => {});
     loadSeries();
-    searchCards({ q: "青眼", size: 12 }).then((r) => setHero(r.items)).catch(() => {});
-  }, []);
+    searchCards({ q: "青眼", size: 12, lang }).then((r) => setHero(r.items)).catch(() => {});
+  }, [lang]);
 
   const go = () => nav(`/search?q=${encodeURIComponent(q.trim())}`);
   const fmt = (n?: number) => (n ? n.toLocaleString("zh-CN") : "—");

@@ -5,10 +5,10 @@ import type { SetSummary, CardSummary } from "../../shared/types";
 import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, ErrorBox } from "../components/common";
 import { FavButton } from "../components/badges";
-import { useLang } from "../lib/i18n";
+import { useLang, setName } from "../lib/i18n";
 
 export function Sets() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [sets, setSets] = useState<SetSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [kw, setKw] = useState("");
@@ -19,7 +19,7 @@ export function Sets() {
   }, []);
   const shown = useMemo(() => {
     const k = kw.trim().toLowerCase();
-    return k ? sets.filter((s) => s.en_name.toLowerCase().includes(k) || s.code.toLowerCase().includes(k)) : sets;
+    return k ? sets.filter((s) => (s.cn_name || "").toLowerCase().includes(k) || s.en_name.toLowerCase().includes(k) || s.code.toLowerCase().includes(k)) : sets;
   }, [sets, kw]);
 
   return (
@@ -37,12 +37,12 @@ export function Sets() {
             <Link key={s.code} to={`/sets/${s.code}`} className="set-card">
               <div className="set-cover">
                 {s.cover_thumb_url
-                  ? <img src={s.cover_thumb_url} alt={s.en_name} />
+                  ? <img src={s.cover_thumb_url} alt={setName(s, lang)} />
                   : <span className="set-cover-ph">🃏</span>}
                 {s.release_date && <span className="set-year">{new Date(s.release_date * 1000).getFullYear()}</span>}
               </div>
               <div className="set-meta">
-                <b>{s.en_name}</b>
+                <b>{setName(s, lang)}</b>
                 <div className="muted">{s.code} · {s.card_count} {t("common.cards")}</div>
               </div>
             </Link>
@@ -55,14 +55,14 @@ export function Sets() {
 
 export function SetDetail() {
   const { code } = useParams();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [data, setData] = useState<{ set: SetSummary; cards: CardSummary[] } | null>(null);
   const [err, setErr] = useState("");
   useEffect(() => {
     setData(null); setErr(""); window.scrollTo(0, 0);
     getSet(code!).then((d) => {
       setData(d);
-      if (d) document.title = `${d.set.cn_name || d.set.en_name}卡包 · 游戏王集卡社`;
+      if (d) document.title = `${setName(d.set, lang)}卡包 · 游戏王集卡社`;
     }).catch((e) => setErr(String(e.message || e)));
   }, [code]);
 
@@ -73,7 +73,7 @@ export function SetDetail() {
       <div className="page-head">
         <div>
           <div className="muted" style={{ fontSize: 13, marginBottom: 6 }}><Link to="/sets">{t("sets.title")}</Link></div>
-          <h1>{data.set.en_name}</h1>
+          <h1>{setName(data.set, lang)}</h1>
           <div className="sub">{data.set.code} · {data.cards.length} {t("common.cards")}{data.set.release_date ? ` · ${new Date(data.set.release_date * 1000).toLocaleDateString()}` : ""}</div>
         </div>
         <FavButton kind="set" refId={data.set.code} />

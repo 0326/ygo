@@ -166,7 +166,7 @@ export default function DeckBuilder() {
     }
     setSearching(true);
     setSearchErr("");
-    searchCards({ q: term, size: 30 })
+    searchCards({ q: term, size: 30, lang })
       .then((r) => {
         r.items.forEach(remember);
         setResults(r.items);
@@ -188,8 +188,8 @@ export default function DeckBuilder() {
       if (countOf(d, c.id) >= max) {
         flash(
           max === 0
-            ? `「${c.cn_name}」是 ${BAN_FORMAT_CN[format]} 禁止卡`
-            : `「${c.cn_name}」在 ${BAN_FORMAT_CN[format]} 上限 ${max} 张`,
+            ? `「${cardName(c, lang)}」是 ${BAN_FORMAT_CN[format]} 禁止卡`
+            : `「${cardName(c, lang)}」在 ${BAN_FORMAT_CN[format]} 上限 ${max} 张`,
         );
         return d;
       }
@@ -233,7 +233,7 @@ export default function DeckBuilder() {
   };
 
   // 校验（含禁限，依赖缓存里的卡数据与所选赛制；cache 异步填充后由 bump 触发重算）
-  const v = validate(deck, { cards: cache.current, format });
+  const v = validate(deck, { cards: cache.current, format, lang });
   const stats = deckStats(deck, cache.current);
   const mainSize = deck.main.length || 40;
 

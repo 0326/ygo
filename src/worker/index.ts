@@ -345,17 +345,15 @@ app.all("*", async (c) => {
     return c.env.ASSETS.fetch(c.req.raw);
   }
 
-  // HTML 页面：边缘缓存 + SEO 注入
-  const cache = caches.default;
-  const key = new Request(c.req.raw.url, { method: "GET" });
-  const hit = await cache.match(key);
-  if (hit) return hit;
+  // 仅对浏览器导航请求（Accept: text/html）做 SEO 注入；
+  // 其余请求（Vite 模块 .tsx/.css、HMR、XHR 等）透传 ASSETS
+  const accept = c.req.header("accept") || "";
+  if (!accept.includes("text/html")) {
+    return c.env.ASSETS.fetch(c.req.raw);
+  }
 
-  const res = await renderSeoHtml(c.env, url);
-  try {
-    c.executionCtx.waitUntil(cache.put(key, res.clone()));
-  } catch { /* local dev */ }
-  return res;
+  // HTML 页面：SEO 注入（不缓存 HTML，避免部署后 JS hash 不一致）
+  return renderSeoHtml(c.env, url);
 });
 
 export default app;

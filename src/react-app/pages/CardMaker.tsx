@@ -25,6 +25,7 @@ import {
   SUBTYPE_OPTIONS,
   ST_SUBTYPE_OPTIONS,
 } from "../lib/labels";
+import { useLang, cardName, cardEffect } from "../lib/i18n";
 import {
   CARD_RATIO,
   exportCardPng,
@@ -147,6 +148,7 @@ function buildModel(s: State, art: HTMLImageElement | null): CardModel {
 }
 
 export default function CardMaker() {
+  const { lang } = useLang();
   useEffect(() => { document.title = "在线制卡器 · 游戏王集卡社"; }, []);
   const [state, setState] = useState<State>(DEFAULT_STATE);
   const [art, setArt] = useState<HTMLImageElement | null>(null);
@@ -235,20 +237,21 @@ export default function CardMaker() {
       const c = await getCard(id);
       const isLink = c.frame === "link";
       const isPend = c.scale != null;
+      const { effect: effText, pend: pendText } = cardEffect(c, lang);
       setState((s) => ({
         ...s,
         cardType: c.card_type,
         frame: c.frame,
         isLink,
         isPendulum: isPend,
-        name: c.cn_name,
+        name: cardName(c, lang),
         attribute: c.attribute,
         level: c.level != null ? String(c.level) : "",
         scale: c.scale != null ? String(c.scale) : s.scale,
         race: c.race ?? "",
         subtype: (c.subtypes?.[0] as MonsterSubtype) ?? "",
-        effect: c.effect_cn ?? "",
-        pendulumEffect: c.pendulum_effect_cn ?? "",
+        effect: effText,
+        pendulumEffect: pendText ?? "",
         atk: c.atk === -1 ? "?" : c.atk != null ? String(c.atk) : "",
         def: c.def === -1 ? "?" : c.def != null ? String(c.def) : "",
         passcode: String(c.id),
@@ -267,7 +270,7 @@ export default function CardMaker() {
         };
         img.src = `/img/${key}/art`;
       }
-      setPrefillMsg(`已预填：${c.cn_name}`);
+      setPrefillMsg(`已预填：${cardName(c, lang)}`);
     } catch {
       setPrefillMsg("未找到该卡片，请检查卡名 / 卡密");
     } finally {
@@ -282,15 +285,15 @@ export default function CardMaker() {
     const q = prefillId.trim();
     if (!q || /^\d+$/.test(q)) { setSug([]); setShowSug(false); return; }
     const t = setTimeout(() => {
-      searchCards({ q, size: 8 })
+      searchCards({ q, size: 8, lang })
         .then((r) => { setSug(r.items); setShowSug(r.items.length > 0); })
         .catch(() => {});
     }, 250);
     return () => clearTimeout(t);
-  }, [prefillId]);
+  }, [prefillId, lang]);
 
   const pickSuggestion = (c: CardSummary) => {
-    setPrefillId(c.cn_name || c.en_name);
+    setPrefillId(cardName(c, lang));
     setShowSug(false);
     void runPrefill(String(c.id));
   };
@@ -304,7 +307,7 @@ export default function CardMaker() {
       pickSuggestion(sug[0]);
     } else {
       // 名称搜索兜底：取第一条结果
-      searchCards({ q, size: 1 })
+      searchCards({ q, size: 1, lang })
         .then((r) => (r.items[0] ? pickSuggestion(r.items[0]) : setPrefillMsg("未找到该卡片，请检查卡名 / 卡密")))
         .catch(() => setPrefillMsg("搜索失败，请稍后重试"));
     }
@@ -411,7 +414,7 @@ export default function CardMaker() {
                       <li key={c.id}>
                         <button type="button" onMouseDown={(e) => { e.preventDefault(); pickSuggestion(c); }}>
                           <img src={c.thumb_url} alt="" loading="lazy" />
-                          <span className="ms-name">{c.cn_name || c.en_name}</span>
+                          <span className="ms-name">{cardName(c, lang)}</span>
                           <span className="ms-id">{c.id}</span>
                         </button>
                       </li>

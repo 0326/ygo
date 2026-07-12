@@ -58,7 +58,8 @@ export interface Artwork {
 
 export interface Print {
   set_code: string;
-  set_name: string;
+  set_name: string;       // 英文名（兼容旧字段）
+  set_cn_name: string | null; // 中文名（M7 多语言）
   rarity: string | null;
   card_number: string;
   release_date: number | null;

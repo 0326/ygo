@@ -249,7 +249,7 @@ export async function renderSeoHtml(env: Env, url: URL): Promise<Response> {
   return new Response(modified, {
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "cache-control": "public, max-age=3600",
+      "cache-control": "no-cache",
     },
   });
 }

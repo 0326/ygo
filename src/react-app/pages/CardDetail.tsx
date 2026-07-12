@@ -6,7 +6,7 @@ import { AttributeIcon, LevelStars, LinkMarkers, FrameBadge, BanBadges, SubtypeC
 import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, ErrorBox } from "../components/common";
 import { frameColor, statStr } from "../lib/labels";
-import { useLang, cardName, cardAltName, cardEffect, frameName, raceName, cardTypeName } from "../lib/i18n";
+import { useLang, cardName, cardAltName, cardEffect, frameName, raceName, cardTypeName, setName } from "../lib/i18n";
 
 export default function CardDetail() {
   const { id } = useParams();
@@ -170,7 +170,7 @@ export default function CardDetail() {
                   <tbody>
                     {card.prints.slice(0, 40).map((p, i) => (
                       <tr key={i}>
-                        <td><Link to={`/sets/${p.set_code}`} style={{ color: "var(--text-0)" }}>{p.set_name}</Link></td>
+                        <td><Link to={`/sets/${p.set_code}`} style={{ color: "var(--text-0)" }}>{setName({ cn_name: p.set_cn_name, en_name: p.set_name }, lang)}</Link></td>
                         <td className="muted">{p.card_number}</td>
                         <td>{p.rarity ? <span className="rarity-tag">{p.rarity}</span> : "—"}</td>
                         <td className="muted">{p.release_date ? new Date(p.release_date * 1000).getFullYear() : "—"}</td>

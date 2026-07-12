@@ -4,6 +4,7 @@ import type { CardSummary } from "../../shared/types";
 import { useSearchParams } from "react-router-dom";
 import { getCard, searchCards, getArchetype } from "../lib/api";
 import { FRAME_CN, raceCn, statStr } from "../lib/labels";
+import { useLang, cardName } from "../lib/i18n";
 import {
   composeShareImage,
   exportShareImage,
@@ -31,6 +32,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 export default function ShareImage() {
+  const { lang } = useLang();
   useEffect(() => { document.title = "分享长图 · 游戏王集卡社"; }, []);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<CardSummary[]>([]);
@@ -60,7 +62,7 @@ export default function ShareImage() {
     setSearching(true);
     const t = setTimeout(async () => {
       try {
-        const res = await searchCards({ q: term, size: 24 });
+        const res = await searchCards({ q: term, size: 24, lang });
         if (alive) setResults(res.items);
       } catch {
         if (alive) setResults([]);
@@ -72,7 +74,7 @@ export default function ShareImage() {
       alive = false;
       clearTimeout(t);
     };
-  }, [q]);
+  }, [q, lang]);
 
   const inTray = useCallback(
     (id: number) => tray.some((c) => c.id === id),
@@ -96,7 +98,7 @@ export default function ShareImage() {
       .then((d) => {
         if (!alive) return;
         setTray(d.cards.slice(0, 24));
-        setTitle(`${d.archetype.cn_name} 系列图鉴`);
+        setTitle(`${lang === "en" ? d.archetype.en_name : d.archetype.cn_name || d.archetype.en_name} 系列图鉴`);
         setLayout("grid");
       })
       .catch(() => {});
@@ -170,6 +172,7 @@ export default function ShareImage() {
         title,
         subtitle,
         layout,
+        lang,
       });
       const { dataUrl, blob } = await exportShareImage(canvas);
       setPreviewUrl(dataUrl);
@@ -221,10 +224,10 @@ export default function ShareImage() {
                       className={`share-result ${inTray(c.id) ? "added" : ""}`}
                       onClick={() => addCard(c)}
                       disabled={inTray(c.id)}
-                      title={c.cn_name}
+                      title={cardName(c, lang)}
                     >
-                      <img src={c.thumb_url} alt={c.cn_name} loading="lazy" />
-                      <span className="share-result-name">{c.cn_name}</span>
+                      <img src={c.thumb_url} alt={cardName(c, lang)} loading="lazy" />
+                      <span className="share-result-name">{cardName(c, lang)}</span>
                       <span className="share-result-add">
                         {inTray(c.id) ? "已加入" : "+ 加入"}
                       </span>
@@ -308,9 +311,9 @@ export default function ShareImage() {
                 {tray.map((c, i) => (
                   <li key={c.id} className="share-tray-item">
                     <span className="share-tray-idx">{i + 1}</span>
-                    <img src={c.thumb_url} alt={c.cn_name} loading="lazy" />
+                    <img src={c.thumb_url} alt={cardName(c, lang)} loading="lazy" />
                     <div className="share-tray-info">
-                      <strong>{c.cn_name}</strong>
+                      <strong>{cardName(c, lang)}</strong>
                       <span className="muted">
                         {FRAME_CN[c.frame]}
                         {c.card_type === "monster" &&

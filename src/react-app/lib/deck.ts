@@ -4,6 +4,7 @@ import type {
   Frame,
   BanFormat,
   BanStatus,
+  Lang,
 } from "../../shared/types";
 
 export type Zone = "main" | "extra" | "side";
@@ -48,6 +49,7 @@ const BAN_MAX: Record<BanStatus, number> = { 0: 0, 1: 1, 2: 2 };
 export interface ValidateOpts {
   cards?: Map<number, CardSummary>; // 用于禁限校验
   format?: BanFormat; // 'ocg' | 'tcg' | 'md'，默认 ocg
+  lang?: Lang; // 卡名显示语言，默认 cn
 }
 export function validate(deck: Deck, opts: ValidateOpts = {}): DeckValidation {
   const errors: string[] = [];
@@ -76,12 +78,15 @@ export function validate(deck: Deck, opts: ValidateOpts = {}): DeckValidation {
   const seen = new Map<number, number>();
   for (const id of all) seen.set(id, (seen.get(id) || 0) + 1);
   const fmt = opts.format ?? "ocg";
+  const lg = opts.lang ?? "cn";
   for (const [id, n] of seen) {
     const card = cards?.get(id);
     const status = card?.ban?.[fmt];
     const max = status != null ? BAN_MAX[status] : LIMITS.perCard;
     if (n > max) {
-      const name = card?.cn_name ?? `#${id}`;
+      const name = card
+        ? (lg === "en" ? (card.en_name || card.cn_name) : lg === "jp" ? (card.jp_name || card.en_name || card.cn_name) : (card.cn_name || card.en_name))
+        : `#${id}`;
       const tag =
         status === 0
           ? "禁止卡"
