@@ -171,6 +171,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="sf-brand">🃏 游戏王<b>集卡社</b></div>
           <div className="sf-copy">© {new Date().getFullYear()} 游戏王集卡社 · {t("footer.copy")}</div>
+          <ul className="sf-disclaimer">
+            <li>{t("footer.disclaimer1")}</li>
+            <li>{t("footer.disclaimer2")}</li>
+            <li>{t("footer.disclaimer3")}</li>
+          </ul>
           <div className="sf-social">@游戏王集卡社 · 抖音号 <b>ygoclub</b></div>
         </div>
       </footer>

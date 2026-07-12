@@ -86,6 +86,9 @@ const CN = {
   "deck.save": "保存卡组", "deck.saveName": "给卡组起个名字", "deck.saved": "已保存到我的卡组",
   // 页脚
   "footer.copy": "卡图版权归 KONAMI 所有，本站仅供学习交流",
+  "footer.disclaimer1": "本站游戏王原卡版权归开发商 KONAMI 和代理公司上海映蝶影视文化有限公司所有",
+  "footer.disclaimer2": "壁纸资源来源于网络，如有侵权请联系站长删除",
+  "footer.disclaimer3": "本网站为免费工具性质，任何个人或组织请勿用于商用或盈利活动",
   "footer.links": "友情链接",
   "footer.grpOfficial": "官方网站 · 数据库",
   "footer.grpGames": "官方游戏 · 模拟器",
@@ -171,6 +174,9 @@ const JP: Record<UIKey, string> = {
   "fav.add": "☆ お気に入り", "fav.added": "★ 登録済み", "fav.loginFirst": "ログインするとお気に入りできます",
   "deck.save": "デッキを保存", "deck.saveName": "デッキ名を入力", "deck.saved": "マイデッキに保存しました",
   "footer.copy": "カード画像の著作権は KONAMI に帰属します。本サイトは学習・交流用です",
+  "footer.disclaimer1": "本サイトの遊戯王オリジナルカードの著作権は開発元 KONAMI および代理会社 上海映蝶影視文化有限公司 に帰属します",
+  "footer.disclaimer2": "壁紙リソースはネット上のものです。権利侵害がございましたら管理人までご連絡ください",
+  "footer.disclaimer3": "本サイトは無料ツールです。個人・団体を問わず商用・営利目的での使用はご遠慮ください",
   "footer.links": "関連リンク",
   "footer.grpOfficial": "公式サイト · データベース",
   "footer.grpGames": "公式ゲーム · シミュレーター",
@@ -252,6 +258,9 @@ const EN: Record<UIKey, string> = {
   "fav.add": "☆ Favorite", "fav.added": "★ Favorited", "fav.loginFirst": "Log in to favorite",
   "deck.save": "Save deck", "deck.saveName": "Name your deck", "deck.saved": "Saved to my decks",
   "footer.copy": "Card images © KONAMI. This site is for learning and communication only",
+  "footer.disclaimer1": "Yu-Gi-Oh! original cards on this site are © KONAMI and its distributor Shanghai Yingdie Film & Culture Co., Ltd.",
+  "footer.disclaimer2": "Wallpaper resources are sourced from the internet. Please contact the webmaster if any infringement is found.",
+  "footer.disclaimer3": "This is a free tool. Individuals and organizations are prohibited from using it for commercial or profit-making purposes.",
   "footer.links": "Related Links",
   "footer.grpOfficial": "Official & Database",
   "footer.grpGames": "Games & Simulators",
@@ -344,6 +353,14 @@ export function cardAltName(c: NamedCard, lang: Lang): string {
   if (lang === "cn") return c.en_name;
   if (lang === "jp") return c.en_name;
   return c.jp_name || c.cn_name;
+}
+
+// 卡包名按语言选择（sets 表无 jp_name，jp 模式回退 cn）
+interface NamedSet { cn_name: string | null; en_name: string }
+export function setName(s: NamedSet, lang: Lang): string {
+  if (lang === "en") return s.en_name;
+  // cn / jp 都优先中文名，缺失则回退英文
+  return s.cn_name || s.en_name;
 }
 
 interface EffectCard {
