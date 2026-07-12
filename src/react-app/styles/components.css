@@ -97,6 +97,7 @@
   display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center;
 }
 /* 友情链接 */
+/* 友情链接整行 */
 .site-footer .sf-links {
   width: 100%; max-width: 1120px; margin: 0 auto var(--sp-5);
   padding-bottom: var(--sp-5); border-bottom: 1px solid var(--line);
@@ -119,24 +120,32 @@
   transition: color .15s ease;
 }
 .site-footer .sf-links-col a:hover { color: var(--gold); }
-@media (max-width: 720px) {
-  .site-footer .sf-links-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
-  .site-footer .sf-links-title { text-align: center; }
+
+/* 左右结构：左侧品牌信息，右侧免责声明 */
+.site-footer .sf-main {
+  display: flex; align-items: flex-start; gap: var(--sp-7);
+  width: 100%; max-width: 1120px; margin: 0 auto;
+  text-align: left;
 }
-.site-footer .sf-brand { font-family: var(--font-display); font-weight: 800; font-size: 18px; }
+.site-footer .sf-info { flex: 0 0 auto; min-width: 220px; display: flex; flex-direction: column; gap: 6px; }
+.site-footer .sf-brand { font-family: var(--font-display); font-weight: 800; font-size: 20px; }
 .site-footer .sf-brand b { color: var(--gold); }
+.site-footer .sf-social { color: var(--text-1); font-size: 14px; }
+.site-footer .sf-social b { color: var(--gold-soft); letter-spacing: .03em; }
 .site-footer .sf-copy { color: var(--text-2); font-size: 13px; }
 .site-footer .sf-disclaimer {
-  list-style: none; margin: 8px 0 0; padding: 0;
-  color: var(--text-2); font-size: 12px; line-height: 1.7;
-  max-width: 720px;
+  list-style: none; margin: 0; padding: 0; flex: 1;
+  color: var(--text-2); font-size: 12px; line-height: 1.75;
 }
 .site-footer .sf-disclaimer li { position: relative; padding-left: 14px; }
 .site-footer .sf-disclaimer li::before {
   content: "·"; position: absolute; left: 4px; top: 0; color: var(--text-2);
 }
-.site-footer .sf-social { color: var(--text-1); font-size: 14px; }
-.site-footer .sf-social b { color: var(--gold-soft); letter-spacing: .03em; }
+@media (max-width: 720px) {
+  .site-footer .sf-links-grid { grid-template-columns: 1fr; gap: var(--sp-4); }
+  .site-footer .sf-links-title { text-align: center; }
+  .site-footer .sf-main { flex-direction: column; gap: var(--sp-4); }
+}
 @media (max-width: 720px) { .site-footer { margin-bottom: 58px; } }
 
 .bottomnav { display: none; }
