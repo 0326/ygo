@@ -22,6 +22,7 @@ export default function Home() {
     listArchetypes(40).then((a) => setSeries(a.slice(0, 8))).catch((e) => setSeriesErr(String(e.message || e)));
   };
   useEffect(() => {
+    document.title = "游戏王集卡社 · 游戏王卡图 / 图鉴 / 制卡器";
     getStats().then(setStats).catch(() => {});
     loadSeries();
     searchCards({ q: "青眼", size: 12 }).then((r) => setHero(r.items)).catch(() => {});

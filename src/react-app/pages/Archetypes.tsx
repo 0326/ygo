@@ -37,6 +37,7 @@ export default function Archetypes() {
   const [kw, setKw] = useState("");
 
   useEffect(() => {
+    document.title = "系列图鉴 · 游戏王集卡社";
     listArchetypes(6).then(setAll).finally(() => setLoading(false));
   }, []);
 

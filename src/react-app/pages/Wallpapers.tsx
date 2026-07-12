@@ -56,7 +56,7 @@ export default function Wallpapers() {
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const ioRef = useRef<IntersectionObserver | null>(null);
 
-  useEffect(() => { listWallpaperTags().then(setTags).catch(() => {}); }, []);
+  useEffect(() => { listWallpaperTags().then(setTags).catch(() => {}); document.title = "游戏王壁纸 · 游戏王集卡社"; }, []);
 
   // 列数随容器宽度变化（最小 1080px，默认 4 列）
   const [colCount, setColCount] = useState(4);

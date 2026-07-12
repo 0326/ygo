@@ -53,6 +53,7 @@ const ZONE_KEY = {
 } as const;
 
 export default function DeckBuilder() {
+  useEffect(() => { document.title = "卡组构建器 · 游戏王集卡社"; }, []);
   const { lang, t } = useLang();
   const { me } = useUser();
   const nav = useNavigate();

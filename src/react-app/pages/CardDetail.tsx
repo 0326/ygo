@@ -19,7 +19,10 @@ export default function CardDetail() {
   useEffect(() => {
     setCard(null); setErr(""); setActive(0);
     window.scrollTo(0, 0);
-    getCard(id!).then(setCard).catch((e) => setErr(String(e.message || e)));
+    getCard(id!).then((c) => {
+      setCard(c);
+      if (c) document.title = `${c.cn_name || c.en_name} · 游戏王集卡社`;
+    }).catch((e) => setErr(String(e.message || e)));
   }, [id]);
 
   // 灯箱键盘操作：Esc 关闭，←/→ 切换异画

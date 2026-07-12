@@ -47,6 +47,7 @@ export default function Search() {
 
   // URL → 状态 + 请求：外部变化（后退/前进/分享链接）时采纳 URL；任何 URL 变化都触发查询
   useEffect(() => {
+    document.title = "搜索卡牌 · 游戏王集卡社";
     const cur = new URLSearchParams(spStr);
     if (stateRef.current !== spStr) {
       setFilters(filtersFromParams(cur));

@@ -31,6 +31,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 }
 
 export default function ShareImage() {
+  useEffect(() => { document.title = "分享长图 · 游戏王集卡社"; }, []);
   const [q, setQ] = useState("");
   const [results, setResults] = useState<CardSummary[]>([]);
   const [searching, setSearching] = useState(false);

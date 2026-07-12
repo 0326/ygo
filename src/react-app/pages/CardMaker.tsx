@@ -147,6 +147,7 @@ function buildModel(s: State, art: HTMLImageElement | null): CardModel {
 }
 
 export default function CardMaker() {
+  useEffect(() => { document.title = "在线制卡器 · 游戏王集卡社"; }, []);
   const [state, setState] = useState<State>(DEFAULT_STATE);
   const [art, setArt] = useState<HTMLImageElement | null>(null);
   const [prefillId, setPrefillId] = useState("");

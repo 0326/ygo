@@ -13,7 +13,10 @@ export function Sets() {
   const [loading, setLoading] = useState(true);
   const [kw, setKw] = useState("");
 
-  useEffect(() => { listSets().then(setSets).finally(() => setLoading(false)); }, []);
+  useEffect(() => {
+    document.title = "卡包列表 · 游戏王集卡社";
+    listSets().then(setSets).finally(() => setLoading(false));
+  }, []);
   const shown = useMemo(() => {
     const k = kw.trim().toLowerCase();
     return k ? sets.filter((s) => s.en_name.toLowerCase().includes(k) || s.code.toLowerCase().includes(k)) : sets;
@@ -57,7 +60,10 @@ export function SetDetail() {
   const [err, setErr] = useState("");
   useEffect(() => {
     setData(null); setErr(""); window.scrollTo(0, 0);
-    getSet(code!).then(setData).catch((e) => setErr(String(e.message || e)));
+    getSet(code!).then((d) => {
+      setData(d);
+      if (d) document.title = `${d.set.cn_name || d.set.en_name}卡包 · 游戏王集卡社`;
+    }).catch((e) => setErr(String(e.message || e)));
   }, [code]);
 
   if (err) return <div className="container page"><ErrorBox msg={err} /></div>;
