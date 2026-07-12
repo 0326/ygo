@@ -1,4 +1,4 @@
-# 哈基米卡库 · ygo.hajimikitty.com
+# 游戏王集卡社 · ygo.hajimikitty.com
 
 > 卡图最美 · 查卡最爽 · 最懂收藏党的一站式游戏王卡牌站 + 让创作者上瘾的制卡 / 图鉴工具。
 
@@ -7,15 +7,15 @@
 
 ## 已实现（v1）
 
-| 模块 | 内容 | 状态 |
-|---|---|---|
-| **M0 地基** | D1 schema + FTS5 中文检索、cdb(简中)×YGOPRODeck 数据管线、Workers 动态查询 API + 边缘缓存、卡图自托管代理、设计系统 + 共享组件库 | ✅ |
-| **M1.1 查卡/筛选** | 简中全文检索 + 卡种/卡框/属性/等级/种族多维筛选 + 分页 | ✅ |
-| **M1.2 详情页 + 异画画廊** ⭐ | 高清卡图、异画切换、完整简中效果、系列归属、关联卡、收录卡包/罕贵表 | ✅ |
-| **M1.3 系列图鉴** ⭐ | 按 archetype 精美图鉴版式，一键进入分享长图 | ✅ |
-| **M2.1 自定义制卡器** ⭐ | Canvas 实时预览、上传卡图、全字段编辑、灵摆/连接、高 DPI 导出、从现有卡片预填、强制「非官方·同人卡」标识 | ✅ |
-| **M2.2 分享长图生成器** | 选卡 → 生成带站点水印 + 短链的精美长图（list/grid/卡面三种版式） | ✅ |
-| **M2.3 组卡器**（v1.1） | 搜索组卡、主/额外/副三区与规则校验（40-60 / 15 / 15、同名 ≤3、额外卡框自动归位）、导出 YDK + 卡组一图流 + 分享链接 | ✅ |
+| 模块                          | 内容                                                                                                                             | 状态 |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| **M0 地基**                   | D1 schema + FTS5 中文检索、cdb(简中)×YGOPRODeck 数据管线、Workers 动态查询 API + 边缘缓存、卡图自托管代理、设计系统 + 共享组件库 | ✅   |
+| **M1.1 查卡/筛选**            | 简中全文检索 + 卡种/卡框/属性/等级/种族多维筛选 + 分页                                                                           | ✅   |
+| **M1.2 详情页 + 异画画廊** ⭐ | 高清卡图、异画切换、完整简中效果、系列归属、关联卡、收录卡包/罕贵表                                                              | ✅   |
+| **M1.3 系列图鉴** ⭐          | 按 archetype 精美图鉴版式，一键进入分享长图                                                                                      | ✅   |
+| **M2.1 自定义制卡器** ⭐      | Canvas 实时预览、上传卡图、全字段编辑、灵摆/连接、高 DPI 导出、从现有卡片预填、强制「非官方·同人卡」标识                         | ✅   |
+| **M2.2 分享长图生成器**       | 选卡 → 生成带站点水印 + 短链的精美长图（list/grid/卡面三种版式）                                                                 | ✅   |
+| **M2.3 组卡器**（v1.1）       | 搜索组卡、主/额外/副三区与规则校验（40-60 / 15 / 15、同名 ≤3、额外卡框自动归位）、导出 YDK + 卡组一图流 + 分享链接               | ✅   |
 
 数据规模：**14,388 张卡（含简中名/效果）· 14,552 张卡图(含异画) · 643 个系列 · 651 个卡包**。
 
@@ -33,7 +33,7 @@ npm run db:setup        # 建表 + 灌库（本地 .wrangler/state）
 npm run dev             # http://localhost:5173
 ```
 
-> 注意：若本机配置了 HTTP(S)_PROXY，`wrangler` 启动可能 `fetch failed`。本地开发可临时
+> 注意：若本机配置了 HTTP(S)\_PROXY，`wrangler` 启动可能 `fetch failed`。本地开发可临时
 > `env -u HTTP_PROXY -u HTTPS_PROXY npm run dev`。
 
 ## 数据来源（M0.1 管线）
@@ -60,7 +60,7 @@ npm run data:sync:remote    # 同步并写入远端 D1（生产）
 
 - `CLOUDFLARE_API_TOKEN`（权限：Account → D1 → Edit）
 - `CLOUDFLARE_ACCOUNT_ID`
-卡图经我方 Worker `/img/:key` 代理 + 边缘缓存（自托管而非热链，符合 ygoprodeck 要求）；终态迁移到 R2 `img.hajimikitty.com` 时前端无感。
+  卡图经我方 Worker `/img/:key` 代理 + 边缘缓存（自托管而非热链，符合 ygoprodeck 要求）；终态迁移到 R2 `img.hajimikitty.com` 时前端无感。
 
 ## 部署到 Cloudflare（生产）
 
@@ -93,15 +93,15 @@ src/react-app/
 
 ## 常用脚本
 
-| 命令 | 作用 |
-|---|---|
-| `npm run dev` | 本地开发（前端 + Worker） |
-| `npm run build` | 类型检查 + 生产构建 |
-| `npm run lint` | ESLint |
-| `npm run data:build` | 重建 `data/seed.sql` |
-| `npm run data:sync` | 拉取上游最新卡牌数据并重建 seed |
-| `npm run data:sync:local` / `:remote` | 同步并写入本地 / 远端 D1 |
-| `npm run db:setup` | 本地 D1 建表 + 灌库 |
-| `npm run deploy` | 部署到 Cloudflare |
+| 命令                                  | 作用                            |
+| ------------------------------------- | ------------------------------- |
+| `npm run dev`                         | 本地开发（前端 + Worker）       |
+| `npm run build`                       | 类型检查 + 生产构建             |
+| `npm run lint`                        | ESLint                          |
+| `npm run data:build`                  | 重建 `data/seed.sql`            |
+| `npm run data:sync`                   | 拉取上游最新卡牌数据并重建 seed |
+| `npm run data:sync:local` / `:remote` | 同步并写入本地 / 远端 D1        |
+| `npm run db:setup`                    | 本地 D1 建表 + 灌库             |
+| `npm run deploy`                      | 部署到 Cloudflare               |
 
 > 合规：制卡器输出统一带「非官方·同人卡」标识，定位纪念/创作而非实战仿冒；非商业起步，保留随时下架能力。

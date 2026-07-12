@@ -110,7 +110,7 @@ function FavWallpapers({ ids }: { ids: string[] }) {
   const [items, setItems] = useState<WallpaperItem[] | null>(null);
   useEffect(() => {
     if (!ids.length) { setItems([]); return; }
-    listWallpapers({ ids: ids.join(","), size: 60 } as never)
+    listWallpapers({ ids: ids.join(","), size: 100 })
       .then((r) => setItems(r.items))
       .catch(() => setItems([]));
   }, [ids]);
@@ -119,10 +119,10 @@ function FavWallpapers({ ids }: { ids: string[] }) {
   return (
     <div className="me-wp-grid">
       {items.map((w) => (
-        <a key={w.id} className="me-wp" href={w.url} target="_blank" rel="noreferrer" title={w.title}>
+        <Link key={w.id} className="me-wp" to={`/wallpapers?id=${encodeURIComponent(w.id)}`} title={w.title}>
           <img src={w.thumb_url} alt={w.title} loading="lazy" />
           <span className="me-wp-meta">{w.width}×{w.height}</span>
-        </a>
+        </Link>
       ))}
     </div>
   );

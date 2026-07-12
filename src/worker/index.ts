@@ -54,7 +54,7 @@ app.get("/api/search", (c) =>
       level_min: q.level_min, level_max: q.level_max,
       atk_min: q.atk_min, atk_max: q.atk_max, def_min: q.def_min, def_max: q.def_max,
       link: q.link, scale: q.scale, subtype: q.subtype, md_rarity: q.md_rarity,
-      format: q.format,
+      format: q.format, lang: q.lang,
       page: intParam(q.page, 1),
       size: intParam(q.size, 24),
     });
@@ -97,16 +97,18 @@ app.get("/api/wallpapers/tags", (c) =>
 app.get("/api/wallpapers/stats", (c) =>
   cached(c, 3600, () => W.wallpaperStats(c.env.ygo_db))
 );
-app.get("/api/wallpapers", (c) =>
-  cached(c, 300, () => {
-    const q = c.req.query();
-    return W.listWallpapers(c.env.ygo_db, {
-      q: q.q, device: q.device, category: q.category, tag: q.tag, sort: q.sort,
-      page: intParam(q.page, 1),
-      size: intParam(q.size, 24),
-    });
-  })
-);
+app.get("/api/wallpapers", (c) => {
+  const q = c.req.query();
+  // 带 ids 的请求是用户私有收藏查询，不走边缘缓存避免串数据
+  const build = () => W.listWallpapers(c.env.ygo_db, {
+    q: q.q, device: q.device, category: q.category, tag: q.tag, sort: q.sort,
+    ids: q.ids,
+    page: intParam(q.page, 1),
+    size: intParam(q.size, 24),
+  });
+  if (q.ids) return build().then((data) => Response.json(data, { headers: { "cache-control": "no-store" } }));
+  return cached(c, 300, build);
+});
 app.get("/wp-img/:id/s", (c) =>
   W.proxyWallpaperImage(c.req.raw, c.env.ygo_db, c.req.param("id"), true, c.env.IMG_BUCKET, c.executionCtx)
 );

@@ -96,9 +96,9 @@ CREATE TABLE banlist (
 );
 CREATE INDEX idx_banlist_card ON banlist(card_id);
 
--- FTS5 全文搜索：覆盖中/日/英名 + 中文效果文本（内容表外置）
+-- FTS5 全文搜索：覆盖中/日/英名 + 中/日/英效果文本（内容表外置）
 CREATE VIRTUAL TABLE cards_fts USING fts5(
-  cn_name, jp_name, en_name, effect_cn,
+  cn_name, jp_name, en_name, effect_cn, effect_jp, effect_en,
   content='cards', content_rowid='id',
   tokenize='trigram'
 );

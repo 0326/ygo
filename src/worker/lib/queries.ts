@@ -2,7 +2,7 @@
 import type {
   CardSummary, CardDetail, Artwork, Print, ArchetypeSummary,
   SearchResponse, SetSummary, Frame, Attribute, CardType, LinkMarker,
-  MonsterSubtype, BanInfo, BanStatus, MdRarity, BanFormat,
+  MonsterSubtype, BanInfo, BanStatus, MdRarity, BanFormat, Lang,
 } from "../../shared/types";
 import { thumbUrl, fullUrl } from "./images";
 
@@ -60,6 +60,34 @@ function toSummary(r: CardRow): CardSummary {
   };
 }
 
+type QueryScript = "cn" | "jp" | "en" | "mixed";
+
+const NAME_COL: Record<Lang, string> = {
+  cn: "c.cn_name",
+  jp: "c.jp_name",
+  en: "c.en_name",
+};
+
+const EFFECT_COL: Record<Lang, string> = {
+  cn: "c.effect_cn",
+  jp: "c.effect_jp",
+  en: "c.effect_en",
+};
+
+function detectQueryScript(q: string): QueryScript {
+  const hasKana = /[぀-ヿ]/.test(q);
+  const hasHan = /[一-鿿]/.test(q);
+  const hasLatin = /[A-Za-z]/.test(q);
+  if (hasKana) return "jp";
+  if (hasHan && !hasLatin) return "cn";
+  if (hasLatin && !hasHan) return "en";
+  return "mixed";
+}
+
+function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, "\\$&");
+}
+
 export async function search(
   db: D1Database,
   params: {
@@ -68,17 +96,47 @@ export async function search(
     level_min?: string; level_max?: string;
     atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
     link?: string; scale?: string; subtype?: string; md_rarity?: string;
-    format?: string;
+    format?: string; lang?: string;
     page: number; size: number; sort?: string;
   }
 ): Promise<SearchResponse> {
   const where: string[] = [];
   const binds: unknown[] = [];
+  const orderBinds: unknown[] = [];
   let from = "cards c";
+  let relevance = "";
 
   if (params.q && params.q.trim()) {
     const q = params.q.trim();
     const esc = q.replace(/"/g, '""');
+    const like = `%${escapeLike(q)}%`;
+    const prefix = `${escapeLike(q)}%`;
+    const script = detectQueryScript(q);
+    const siteLang = params.lang === "cn" || params.lang === "jp" || params.lang === "en" ? params.lang : null;
+    const preferredNameCols =
+      script === "cn" ? ["c.cn_name"] :
+      script === "jp" ? ["c.jp_name"] :
+      script === "en" ? ["c.en_name"] :
+      [];
+    const preferredEffectCols =
+      script === "cn" ? ["c.effect_cn"] :
+      script === "jp" ? ["c.effect_jp"] :
+      script === "en" ? ["c.effect_en"] :
+      [];
+    const siteNameCols = siteLang ? [NAME_COL[siteLang]] : [];
+    const siteEffectCols = siteLang ? [EFFECT_COL[siteLang]] : [];
+    const allNameCols = ["c.cn_name", "c.jp_name", "c.en_name"];
+    const allEffectCols = ["c.effect_cn", "c.effect_jp", "c.effect_en"];
+    const rankCases: string[] = [];
+    let rank = 0;
+    const addCase = (expr: string, vals: unknown[]) => {
+      rankCases.push(`WHEN ${expr} THEN ${rank++}`);
+      orderBinds.push(...vals);
+    };
+    const eqExpr = (cols: string[]) => cols.map((col) => `${col} = ?`).join(" OR ");
+    const likeExpr = (cols: string[]) => cols.map((col) => `${col} LIKE ? ESCAPE '\\'`).join(" OR ");
+    const vals = (cols: string[], val: unknown) => cols.map(() => val);
+
     if (q.length >= 3) {
       // FTS5 trigram：≥3 字
       from = "cards_fts f JOIN cards c ON c.id=f.rowid";
@@ -90,10 +148,25 @@ export async function search(
       where.push("cards_bigram MATCH ?");
       binds.push(`"${esc}"`);
     } else {
-      // 单字或拉丁短词：LIKE 兜底
-      where.push("(c.cn_name LIKE ? OR c.en_name LIKE ?)");
-      binds.push(`%${q}%`, `%${q}%`);
+      // 单字或拉丁短词：名称 LIKE 兜底，覆盖中/日/英
+      where.push("(c.cn_name LIKE ? ESCAPE '\\' OR c.jp_name LIKE ? ESCAPE '\\' OR c.en_name LIKE ? ESCAPE '\\')");
+      binds.push(like, like, like);
     }
+
+    if (/^\d+$/.test(q)) addCase("c.id = ?", [parseInt(q, 10)]);
+    if (preferredNameCols.length) addCase(`(${eqExpr(preferredNameCols)})`, vals(preferredNameCols, q));
+    if (siteNameCols.length && siteNameCols[0] !== preferredNameCols[0]) addCase(`(${eqExpr(siteNameCols)})`, vals(siteNameCols, q));
+    addCase(`(${eqExpr(allNameCols)})`, vals(allNameCols, q));
+    if (preferredNameCols.length) addCase(`(${likeExpr(preferredNameCols)})`, vals(preferredNameCols, prefix));
+    if (siteNameCols.length && siteNameCols[0] !== preferredNameCols[0]) addCase(`(${likeExpr(siteNameCols)})`, vals(siteNameCols, prefix));
+    addCase(`(${likeExpr(allNameCols)})`, vals(allNameCols, prefix));
+    if (preferredNameCols.length) addCase(`(${likeExpr(preferredNameCols)})`, vals(preferredNameCols, like));
+    if (siteNameCols.length && siteNameCols[0] !== preferredNameCols[0]) addCase(`(${likeExpr(siteNameCols)})`, vals(siteNameCols, like));
+    addCase(`(${likeExpr(allNameCols)})`, vals(allNameCols, like));
+    if (preferredEffectCols.length) addCase(`(${likeExpr(preferredEffectCols)})`, vals(preferredEffectCols, like));
+    if (siteEffectCols.length && siteEffectCols[0] !== preferredEffectCols[0]) addCase(`(${likeExpr(siteEffectCols)})`, vals(siteEffectCols, like));
+    addCase(`(${likeExpr(allEffectCols)})`, vals(allEffectCols, like));
+    relevance = `CASE ${rankCases.join(" ")} ELSE ${rank} END, `;
   }
   const inList = (col: string, val?: string) => {
     if (!val) return;
@@ -142,9 +215,9 @@ export async function search(
 
   const whereSql = where.length ? "WHERE " + where.join(" AND ") : "";
   const order =
-    params.sort === "atk" ? "c.atk DESC" :
-    params.sort === "level" ? "c.level DESC, c.atk DESC" :
-    "c.id ASC";
+    params.sort === "atk" ? `${relevance}c.atk DESC, c.id ASC` :
+    params.sort === "level" ? `${relevance}c.level DESC, c.atk DESC, c.id ASC` :
+    `${relevance}c.id ASC`;
 
   const size = Math.min(Math.max(params.size, 1), 60);
   const page = Math.max(params.page, 1);
@@ -158,7 +231,7 @@ export async function search(
 
   const { results } = await db
     .prepare(`SELECT ${COLS} FROM ${from} ${whereSql} ORDER BY ${order} LIMIT ? OFFSET ?`)
-    .bind(...binds, size, offset)
+    .bind(...binds, ...orderBinds, size, offset)
     .all<CardRow>();
 
   return { total, page, size, items: (results || []).map(toSummary) };

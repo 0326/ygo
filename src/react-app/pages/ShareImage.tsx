@@ -1,10 +1,5 @@
 // M2.2 分享长图生成器：搜索/粘贴密码挑选卡片 -> 合成竖向海报长图 -> 导出 PNG。
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CardSummary } from "../../shared/types";
 import { useSearchParams } from "react-router-dom";
 import { getCard, searchCards, getArchetype } from "../lib/api";
@@ -43,7 +38,9 @@ export default function ShareImage() {
   const [paste, setPaste] = useState("");
 
   const [title, setTitle] = useState("我的精选卡组");
-  const [subtitle, setSubtitle] = useState("来自哈基米卡库 · 卡图最美的游戏王卡库");
+  const [subtitle, setSubtitle] = useState(
+    "来自游戏王集卡社 · 卡图最美的游戏王卡库",
+  );
   const [layout, setLayout] = useState<Layout>("list");
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -168,7 +165,11 @@ export default function ShareImage() {
           image: await getImg(useFull ? `/img/${c.id}` : c.thumb_url),
         })),
       );
-      const canvas = await composeShareImage(items, { title, subtitle, layout });
+      const canvas = await composeShareImage(items, {
+        title,
+        subtitle,
+        layout,
+      });
       const { dataUrl, blob } = await exportShareImage(canvas);
       setPreviewUrl(dataUrl);
       blobRef.current = blob;
@@ -194,7 +195,8 @@ export default function ShareImage() {
         <div className="page-head">
           <h1>分享长图生成器</h1>
           <p className="muted">
-            挑选卡片，一键生成「天生适合截图转发」的精美长图 —— 发抖音、小红书、QQ 群都好看。
+            挑选卡片，一键生成「天生适合截图转发」的精美长图 ——
+            发抖音、小红书、QQ 群都好看。
           </p>
         </div>
 

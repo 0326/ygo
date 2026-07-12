@@ -28,7 +28,7 @@ function buildParams(q: string, filters: Filters, archetype: string, page: numbe
 
 // URL 是搜索状态的唯一事实来源：筛选/页码全部进地址栏，刷新、分享、前进后退均可还原。
 export default function Search() {
-  const { t } = useLang();
+  const { lang, t } = useLang();
   const [sp, setSp] = useSearchParams();
   const spStr = sp.toString();
   const [q, setQ] = useState(() => sp.get("q") || "");
@@ -57,7 +57,7 @@ export default function Search() {
     const id = ++reqId.current;
     setLoading(true);
     setErr("");
-    searchCards({ ...Object.fromEntries(cur.entries()), page: pg, size: PAGE_SIZE })
+    searchCards({ ...Object.fromEntries(cur.entries()), lang, page: pg, size: PAGE_SIZE })
       .then((r) => {
         if (id !== reqId.current) return;
         if (r.items.length === 0 && r.total > 0 && pg > 1) {
@@ -72,7 +72,7 @@ export default function Search() {
       .catch((e) => { if (id === reqId.current) setErr(String(e.message || e)); })
       .finally(() => { if (id === reqId.current) setLoading(false); });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [spStr]);
+  }, [spStr, lang]);
 
   // 状态 → URL：筛选点击/范围输入防抖同步（replace 不产生历史垃圾）；提交与翻页走各自的立即 push
   useEffect(() => {
@@ -119,7 +119,7 @@ export default function Search() {
             : data && (
               <>
                 <div style={{ opacity: loading ? .5 : 1, transition: ".2s" }}>
-                  <CardGrid cards={data.items} showAttr />
+                  <CardGrid key={lang} cards={data.items} showAttr />
                 </div>
                 {totalPages > 1 && (
                   <div className="pager">

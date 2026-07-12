@@ -2,7 +2,7 @@
 import type {
   SearchResponse, CardDetail, Artwork, ArchetypeSummary,
   CardSummary, SetSummary,
-  WallpaperItem, WallpaperListResponse, WallpaperTagCount,
+  WallpaperItem, WallpaperListResponse, WallpaperTagCount, Lang,
 } from "../../shared/types";
 
 export type {
@@ -24,6 +24,7 @@ export interface SearchParams {
   atk_min?: string; atk_max?: string; def_min?: string; def_max?: string;
   link?: string; scale?: string; subtype?: string; md_rarity?: string;
   format?: string;
+  lang?: Lang;
   sort?: string; page?: number; size?: number;
 }
 
@@ -49,6 +50,7 @@ export const getStats = () =>
 // ---------------- M9 壁纸 ----------------
 export interface WallpaperParams {
   q?: string; device?: string; category?: string; tag?: string;
+  ids?: string;
   sort?: string; page?: number; size?: number;
 }
 

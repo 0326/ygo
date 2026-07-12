@@ -39,6 +39,10 @@ h1,h2,h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: .
 }
 .btn-primary:hover { filter: brightness(1.08); border-color: transparent; }
 .btn-ghost { background: transparent; }
+.btn-danger {
+  background: transparent; border-color: rgba(220, 70, 70, .5); color: #e57070;
+}
+.btn-danger:hover { background: rgba(220, 70, 70, .12); border-color: #e57070; color: #ff8585; }
 
 .chip {
   display: inline-flex; align-items: center; gap: 6px;

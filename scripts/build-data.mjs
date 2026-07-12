@@ -327,7 +327,7 @@ batchInsert(
   bigrams,
   (r) => [r.id, r.bg]
 );
-out.push("INSERT INTO cards_fts(rowid,cn_name,jp_name,en_name,effect_cn) SELECT id,cn_name,jp_name,en_name,effect_cn FROM cards;");
+out.push("INSERT INTO cards_fts(rowid,cn_name,jp_name,en_name,effect_cn,effect_jp,effect_en) SELECT id,cn_name,jp_name,en_name,effect_cn,effect_jp,effect_en FROM cards;");
 
 writeFileSync(`${ROOT}data/seed.sql`, out.join("\n"));
 console.log(`wrote data/seed.sql (${(out.join("\n").length / 1e6).toFixed(1)} MB)`);
