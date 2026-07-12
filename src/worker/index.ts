@@ -4,6 +4,7 @@ import * as Q from "./lib/queries";
 import * as W from "./lib/wallpapers";
 import * as A from "./lib/auth";
 import { proxyImage } from "./lib/images";
+import { renderSeoHtml, sitemapXml, isStaticAsset } from "./lib/seo";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -124,8 +125,14 @@ const json = (data: unknown, status = 200, headers?: Record<string, string>) =>
   });
 
 app.post("/api/auth/register", async (c) => {
-  const body = await c.req.json<{ username?: string; password?: string }>().catch(() => ({} as Record<string, never>));
-  const r = await A.register(c.env.ygo_db, String(body.username || "").trim(), String(body.password || ""));
+  const body = await c.req.json<{ username?: string; password?: string; website?: string; t?: number }>().catch(() => ({} as Record<string, never>));
+  // M11 注册防垃圾：CF-Connecting-IP 取真实客户端 IP，蜜罐 + 表单耗时校验
+  const ip = c.req.raw.headers.get("cf-connecting-ip") || c.req.raw.headers.get("x-forwarded-for")?.split(",")[0].trim() || "";
+  const r = await A.register(c.env.ygo_db, String(body.username || "").trim(), String(body.password || ""), {
+    ip,
+    honeypot: body.website,
+    formTime: body.t,
+  });
   if (r.error || !r.user) return json({ error: r.error || "注册失败" }, 400);
   const s = await A.createSession(c.env.ygo_db, r.user.id);
   return json({ user: r.user }, 200, { "set-cookie": A.sessionCookie(s.token, s.expires) });
@@ -212,6 +219,24 @@ app.delete("/api/me/decks/:id", async (c) => {
   return json({ ok: true });
 });
 
+// ---------- 反馈建议（M11：未登录可读，登录可提交） ----------
+app.get("/api/feedback", (c) => {
+  const q = c.req.query();
+  return A.listFeedback(c.env.ygo_db, intParam(q.page, 1), Math.min(intParam(q.size, 20), 50)).then((data) =>
+    Response.json(data, { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }),
+  );
+});
+app.post("/api/feedback", async (c) => {
+  const u = await requireUser(c);
+  if (u instanceof Response) return u;
+  const body = await c.req.json<{ category?: string; content?: string }>().catch(() => ({} as Record<string, never>));
+  const category = String(body.category || "other");
+  if (!A.isFeedbackCategory(category)) return json({ error: "分类无效" }, 400);
+  const r = await A.createFeedback(c.env.ygo_db, u, category, String(body.content || ""));
+  if ("error" in r) return json(r, 400);
+  return json(r);
+});
+
 // ---------- 管理端（M10：用户概览 + 壁纸 CRUD） ----------
 // 增删改后清除相关边缘缓存：列表已 no-store，这里只清 tags/stats 与被删图片
 function purgeWallpaperCache(req: Request, ctx: ExecutionContext, id?: string) {
@@ -258,6 +283,16 @@ app.delete("/api/admin/wallpapers/:id", async (c) => {
   return json(r, "error" in r ? 400 : 200);
 });
 
+// ---------- 管理端（M11：反馈回复 + 标记状态） ----------
+app.put("/api/admin/feedback/:id", async (c) => {
+  const u = await requireAdmin(c);
+  if (u instanceof Response) return u;
+  const body = await c.req.json<{ reply?: string; status?: "open" | "resolved" }>().catch(() => null);
+  if (!body) return json({ error: "请求体无效" }, 400);
+  const r = await A.adminUpdateFeedback(c.env.ygo_db, intParam(c.req.param("id"), 0), body);
+  return json(r, "error" in r ? 400 : 200);
+});
+
 // ---------- 站点统计 ----------
 app.get("/api/stats", (c) => cached(c, 3600, () => Q.stats(c.env.ygo_db)));
 
@@ -272,6 +307,55 @@ app.get("/img/:key", (c) =>
   proxyImage(c.req.raw, c.req.param("key"), "full", c.env.IMG_BUCKET, c.executionCtx)
 );
 
-app.get("/api/*", (c) => c.json({ error: "unknown endpoint" }, 404));
+app.all("/api/*", (c) => c.json({ error: "unknown endpoint" }, 404));
+
+// ---------- sitemap.xml ----------
+app.get("/sitemap.xml", async (c) => {
+  const cache = caches.default;
+  const key = new Request(c.req.raw.url, { method: "GET" });
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const xml = await sitemapXml(c.env, new URL(c.req.raw.url).origin);
+  const res = new Response(xml, {
+    headers: {
+      "content-type": "application/xml; charset=utf-8",
+      "cache-control": "public, max-age=3600",
+    },
+  });
+  c.executionCtx.waitUntil(cache.put(key, res.clone()));
+  return res;
+});
+
+// ---------- robots.txt ----------
+app.get("/robots.txt", (c) => {
+  const origin = new URL(c.req.raw.url).origin;
+  const body = `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`;
+  return new Response(body, {
+    headers: { "content-type": "text/plain; charset=utf-8" },
+  });
+});
+
+// ---------- SEO 注入 + 静态资源透传（run_worker_first 模式下的全量路由守卫） ----------
+app.all("*", async (c) => {
+  const url = new URL(c.req.raw.url);
+  const path = url.pathname;
+
+  // 静态资源：直接透传 ASSETS，不做注入
+  if (isStaticAsset(path)) {
+    return c.env.ASSETS.fetch(c.req.raw);
+  }
+
+  // HTML 页面：边缘缓存 + SEO 注入
+  const cache = caches.default;
+  const key = new Request(c.req.raw.url, { method: "GET" });
+  const hit = await cache.match(key);
+  if (hit) return hit;
+
+  const res = await renderSeoHtml(c.env, url);
+  try {
+    c.executionCtx.waitUntil(cache.put(key, res.clone()));
+  } catch { /* local dev */ }
+  return res;
+});
 
 export default app;

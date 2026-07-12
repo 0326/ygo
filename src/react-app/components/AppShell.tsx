@@ -11,7 +11,9 @@ const links = [
   { to: "/wallpapers", key: "nav.wallpapers" },
   { to: "/maker", key: "nav.maker" },
   { to: "/deck", key: "nav.deck" },
-  { to: "/share", key: "nav.share" },
+  // M11：分享长图功能暂时下线（保留代码以备恢复）
+  // { to: "/share", key: "nav.share" },
+  { to: "/feedback", key: "nav.feedback" },
 ] as const;
 
 // 友情链接：全量收录游戏王官方站点 / 游戏 / 模拟器 / 资料库 / 卡查 / Meta / 市场，聚合成 5 类
@@ -86,7 +88,8 @@ const ICONS: Record<string, string> = {
   "/sets": "M3 7l9-4 9 4-9 4-9-4zm0 0v10l9 4 9-4V7",
   "/maker": "M12 19l7-7 3 3-7 7-3-3zM2 2l7.5 7.5M11 11l-9 9",
   "/deck": "M4 7h10v13H4zM9 4h11v13",
-  "/share": "M4 12v8h16v-8M16 6l-4-4-4 4M12 2v14",
+  // "/share": "M4 12v8h16v-8M16 6l-4-4-4 4M12 2v14",
+  "/feedback": "M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z",
   "/wallpapers": "M3 5h18v14H3zM3 15l5-5 4 4 3-3 6 5",
 };
 

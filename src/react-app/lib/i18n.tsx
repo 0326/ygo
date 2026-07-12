@@ -17,6 +17,7 @@ const CN = {
   // 导航
   "nav.search": "查卡", "nav.archetypes": "系列图鉴", "nav.sets": "卡包",
   "nav.maker": "制卡器", "nav.deck": "组卡", "nav.share": "长图", "nav.wallpapers": "壁纸",
+  "nav.feedback": "反馈",
   // 通用
   "common.search": "搜索", "common.retry": "重试", "common.prev": "上一页", "common.next": "下一页",
   "common.viewAll": "查看全部 →", "common.empty": "没有匹配的卡片，换个条件试试",
@@ -91,6 +92,16 @@ const CN = {
   "footer.grpWiki": "资料库 · Wiki",
   "footer.grpCommunity": "中文卡查 · 社区",
   "footer.grpMeta": "Meta · 攻略 · 市场",
+  // 反馈建议（M11）
+  "fb.title": "反馈建议", "fb.sub": "给网站提建议 · 已登录用户可提交，所有人可查看",
+  "fb.category": "分类", "fb.catBug": "Bug 反馈", "fb.catFeature": "功能建议", "fb.catOther": "其他",
+  "fb.placeholder": "说说你的想法：遇到了什么问题 / 希望增加什么功能……",
+  "fb.submit": "提交建议", "fb.listTitle": "全部建议",
+  "fb.empty": "还没有建议，成为第一个提建议的人吧",
+  "fb.loginHint": "登录后即可提交建议",
+  "fb.open": "待处理", "fb.resolved": "已处理", "fb.replyTitle": "管理员回复",
+  "fb.adminTitle": "反馈管理", "fb.reply": "回复", "fb.replyPh": "输入回复内容…",
+  "fb.markResolved": "标记为已处理", "fb.markOpen": "重新打开", "fb.save": "保存",
   // 赛制标记
   "fmt.ocgOnly": "OCG 专属", "fmt.tcgOnly": "TCG 专属",
 };
@@ -100,6 +111,7 @@ type UIKey = keyof typeof CN;
 const JP: Record<UIKey, string> = {
   "nav.search": "カード検索", "nav.archetypes": "テーマ図鑑", "nav.sets": "パック",
   "nav.maker": "カードメーカー", "nav.deck": "デッキ構築", "nav.share": "シェア画像", "nav.wallpapers": "壁紙",
+  "nav.feedback": "フィードバック",
   "common.search": "検索", "common.retry": "再試行", "common.prev": "前へ", "common.next": "次へ",
   "common.viewAll": "すべて見る →", "common.empty": "該当するカードがありません。条件を変えてみてください",
   "common.searchPlaceholder": "カード名 / テキストを検索…", "common.cards": "枚",
@@ -165,12 +177,22 @@ const JP: Record<UIKey, string> = {
   "footer.grpWiki": "データベース · Wiki",
   "footer.grpCommunity": "カード検索 · コミュニティ",
   "footer.grpMeta": "環境 · 攻略 · 相場",
+  "fb.title": "フィードバック", "fb.sub": "サイトへのご意見 · ログインユーザーは投稿可能、誰でも閲覧可",
+  "fb.category": "カテゴリ", "fb.catBug": "バグ報告", "fb.catFeature": "機能要望", "fb.catOther": "その他",
+  "fb.placeholder": "ご意見をお聞かせください：問題点 / 追加してほしい機能…",
+  "fb.submit": "投稿", "fb.listTitle": "すべての投稿",
+  "fb.empty": "まだ投稿がありません",
+  "fb.loginHint": "ログインすると投稿できます",
+  "fb.open": "未対応", "fb.resolved": "対応済み", "fb.replyTitle": "管理者からの返信",
+  "fb.adminTitle": "フィードバック管理", "fb.reply": "返信", "fb.replyPh": "返信内容を入力…",
+  "fb.markResolved": "対応済みにする", "fb.markOpen": "再オープン", "fb.save": "保存",
   "fmt.ocgOnly": "OCG 限定", "fmt.tcgOnly": "TCG 限定",
 };
 
 const EN: Record<UIKey, string> = {
   "nav.search": "Cards", "nav.archetypes": "Archetypes", "nav.sets": "Sets",
   "nav.maker": "Card Maker", "nav.deck": "Deck Builder", "nav.share": "Share Image", "nav.wallpapers": "Wallpapers",
+  "nav.feedback": "Feedback",
   "common.search": "Search", "common.retry": "Retry", "common.prev": "Prev", "common.next": "Next",
   "common.viewAll": "View all →", "common.empty": "No cards matched. Try different filters",
   "common.searchPlaceholder": "Search card name / text…", "common.cards": "cards",
@@ -236,6 +258,15 @@ const EN: Record<UIKey, string> = {
   "footer.grpWiki": "Wikis & Databases",
   "footer.grpCommunity": "Card Search & Community",
   "footer.grpMeta": "Meta & Market",
+  "fb.title": "Feedback", "fb.sub": "Share your suggestions · Logged-in users can post, everyone can read",
+  "fb.category": "Category", "fb.catBug": "Bug", "fb.catFeature": "Feature request", "fb.catOther": "Other",
+  "fb.placeholder": "Tell us what you think: issues encountered / features you'd like…",
+  "fb.submit": "Submit", "fb.listTitle": "All feedback",
+  "fb.empty": "No feedback yet — be the first to suggest something",
+  "fb.loginHint": "Log in to submit feedback",
+  "fb.open": "Open", "fb.resolved": "Resolved", "fb.replyTitle": "Admin reply",
+  "fb.adminTitle": "Feedback Management", "fb.reply": "Reply", "fb.replyPh": "Enter your reply…",
+  "fb.markResolved": "Mark as resolved", "fb.markOpen": "Reopen", "fb.save": "Save",
   "fmt.ocgOnly": "OCG only", "fmt.tcgOnly": "TCG only",
 };
 

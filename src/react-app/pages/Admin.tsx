@@ -1,14 +1,16 @@
 // M10 管理后台（站长内部工具，界面固定中文）：用户概览 + 壁纸增删改查。
+// M11 反馈管理：回复 + 标记状态。
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { AdminUserRow, WallpaperItem } from "../../shared/types";
+import type { AdminUserRow, WallpaperItem, FeedbackItem } from "../../shared/types";
 import {
   adminListUsers, listWallpapers, adminCreateWallpaper, adminUpdateWallpaper, adminDeleteWallpaper,
+  listFeedback, adminUpdateFeedback,
 } from "../lib/api";
 import { useUser } from "../lib/user";
 import { Spinner, Empty } from "../components/common";
 
-type Tab = "users" | "wallpapers";
+type Tab = "users" | "wallpapers" | "feedback";
 
 export default function Admin() {
   const { me } = useUser();
@@ -27,14 +29,15 @@ export default function Admin() {
       <div className="page-head">
         <div>
           <h1>管理后台</h1>
-          <div className="sub">用户概览 · 壁纸管理</div>
+          <div className="sub">用户概览 · 壁纸管理 · 反馈管理</div>
         </div>
       </div>
       <div className="me-tabs">
         <button className={`fmt-tab${tab === "users" ? " on" : ""}`} onClick={() => setTab("users")}>用户</button>
         <button className={`fmt-tab${tab === "wallpapers" ? " on" : ""}`} onClick={() => setTab("wallpapers")}>壁纸管理</button>
+        <button className={`fmt-tab${tab === "feedback" ? " on" : ""}`} onClick={() => setTab("feedback")}>反馈管理</button>
       </div>
-      {tab === "users" ? <UsersPanel /> : <WallpapersPanel />}
+      {tab === "users" ? <UsersPanel /> : tab === "wallpapers" ? <WallpapersPanel /> : <FeedbackPanel />}
     </div>
   );
 }
@@ -213,6 +216,125 @@ function WallpapersPanel() {
             </div>
           ))}
         </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="pager">
+          <button className="btn" disabled={page <= 1} onClick={() => load(page - 1)}>上一页</button>
+          <span className="cur">{page} / {totalPages}</span>
+          <button className="btn" disabled={page >= totalPages} onClick={() => load(page + 1)}>下一页</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- M11 反馈管理：回复 + 标记状态 ----
+const CAT_LABEL: Record<string, string> = { bug: "Bug", feature: "功能建议", other: "其他" };
+
+function FeedbackPanel() {
+  const [items, setItems] = useState<FeedbackItem[] | null>(null);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState<{ id: number; reply: string; status: "open" | "resolved" } | null>(null);
+  const [msg, setMsg] = useState("");
+
+  const load = (pg = page) => {
+    setItems(null);
+    listFeedback(pg, 20)
+      .then((r) => { setItems(r.items); setTotal(r.total); setPage(r.page); })
+      .catch(() => { setItems([]); setTotal(0); });
+  };
+  useEffect(() => { load(1); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+
+  const flash = (m: string) => { setMsg(m); setTimeout(() => setMsg(""), 2500); };
+
+  const save = async () => {
+    if (!editing) return;
+    try {
+      await adminUpdateFeedback(editing.id, { reply: editing.reply, status: editing.status });
+      flash("已保存");
+      setEditing(null);
+      load();
+    } catch (e) {
+      flash(String((e as Error).message || e));
+    }
+  };
+
+  const toggleStatus = async (it: FeedbackItem) => {
+    const next = it.status === "open" ? "resolved" : "open";
+    try {
+      await adminUpdateFeedback(it.id, { status: next });
+      load();
+    } catch (e) {
+      flash(String((e as Error).message || e));
+    }
+  };
+
+  const totalPages = Math.max(1, Math.ceil(total / 20));
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center" }}>
+        <span className="muted">共 {total} 条{msg && ` · ${msg}`}</span>
+      </div>
+
+      {editing && (
+        <div className="admin-form">
+          <h3>回复 #{editing.id}</h3>
+          <label style={{ display: "block", fontSize: 13, color: "var(--text-2)", marginBottom: 6 }}>回复内容</label>
+          <textarea
+            className="login-input" rows={3} style={{ width: "100%", resize: "vertical" }}
+            placeholder="输入回复内容…"
+            value={editing.reply} onChange={(e) => setEditing({ ...editing, reply: e.target.value })}
+          />
+          <label style={{ display: "block", fontSize: 13, color: "var(--text-2)", margin: "10px 0 6px" }}>状态</label>
+          <select
+            className="login-input" style={{ maxWidth: 200 }}
+            value={editing.status} onChange={(e) => setEditing({ ...editing, status: e.target.value as "open" | "resolved" })}
+          >
+            <option value="open">待处理</option>
+            <option value="resolved">已处理</option>
+          </select>
+          <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+            <button className="btn btn-primary" onClick={save}>保存</button>
+            <button className="btn btn-ghost" onClick={() => setEditing(null)}>取消</button>
+          </div>
+        </div>
+      )}
+
+      {!items ? <Spinner /> : !items.length ? <Empty text="还没有反馈" /> : (
+        <ul className="fb-list">
+          {items.map((it) => (
+            <li key={it.id} className={`fb-item${it.status === "resolved" ? " resolved" : ""}`}>
+              <div className="fb-item-head">
+                <span className="fb-avatar">{it.username.slice(0, 1).toUpperCase()}</span>
+                <span className="fb-username">{it.username}</span>
+                <span className="fb-chip cat">{CAT_LABEL[it.category] || it.category}</span>
+                <span className={`fb-chip status ${it.status}`}>
+                  {it.status === "resolved" ? "已处理" : "待处理"}
+                </span>
+                <span className="muted fb-time">#{it.id} · {fmtTime(it.created_at)}</span>
+              </div>
+              <p className="fb-content">{it.content}</p>
+              {it.reply && (
+                <div className="fb-reply">
+                  <div className="fb-reply-head">管理员回复</div>
+                  <p>{it.reply}</p>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                <button
+                  className="btn"
+                  onClick={() => setEditing({ id: it.id, reply: it.reply || "", status: it.status })}
+                >回复</button>
+                <button className="btn btn-ghost" onClick={() => void toggleStatus(it)}>
+                  {it.status === "open" ? "标记为已处理" : "重新打开"}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
 
       {totalPages > 1 && (

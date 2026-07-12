@@ -65,8 +65,8 @@ export function listWallpapers(p: WallpaperParams): Promise<WallpaperListRespons
 export const listWallpaperTags = () => get<WallpaperTagCount[]>(`/api/wallpapers/tags`);
 
 // ---------------- M10 账号体系 ----------------
-import type { AuthUser, FavKind, UserDeck, AdminUserRow } from "../../shared/types";
-export type { AuthUser, FavKind, UserDeck, AdminUserRow };
+import type { AuthUser, FavKind, UserDeck, AdminUserRow, FeedbackItem, FeedbackListResponse, FeedbackCategory } from "../../shared/types";
+export type { AuthUser, FavKind, UserDeck, AdminUserRow, FeedbackItem, FeedbackListResponse, FeedbackCategory };
 
 async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
   const res = await fetch(path, {
@@ -79,8 +79,9 @@ async function send<T>(path: string, method: string, body?: unknown): Promise<T>
   return data;
 }
 
-export const authRegister = (username: string, password: string) =>
-  send<{ user: AuthUser }>("/api/auth/register", "POST", { username, password });
+// M11 注册防垃圾：honeypot(website) + 表单渲染时间戳 t
+export const authRegister = (username: string, password: string, opts?: { website?: string; t?: number }) =>
+  send<{ user: AuthUser }>("/api/auth/register", "POST", { username, password, website: opts?.website, t: opts?.t });
 export const authLogin = (username: string, password: string) =>
   send<{ user: AuthUser }>("/api/auth/login", "POST", { username, password });
 export const authLogout = () => send<{ ok: true }>("/api/auth/logout", "POST");
@@ -107,3 +108,11 @@ export const adminUpdateWallpaper = (id: string, w: Record<string, unknown>) =>
   send<{ ok: true }>(`/api/admin/wallpapers/${encodeURIComponent(id)}`, "PUT", w);
 export const adminDeleteWallpaper = (id: string) =>
   send<{ ok: true }>(`/api/admin/wallpapers/${encodeURIComponent(id)}`, "DELETE");
+
+// ---------------- M11 反馈建议 ----------------
+export const listFeedback = (page = 1, size = 20) =>
+  get<FeedbackListResponse>(`/api/feedback?page=${page}&size=${size}`);
+export const submitFeedback = (category: FeedbackCategory, content: string) =>
+  send<{ id: number }>("/api/feedback", "POST", { category, content });
+export const adminUpdateFeedback = (id: number, patch: { reply?: string; status?: "open" | "resolved" }) =>
+  send<{ ok: true }>(`/api/admin/feedback/${id}`, "PUT", patch);

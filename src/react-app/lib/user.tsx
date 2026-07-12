@@ -10,7 +10,7 @@ import {
 interface UserCtx {
   me: AuthUser | null | undefined;   // undefined=加载中 null=未登录
   login: (u: string, p: string) => Promise<void>;
-  register: (u: string, p: string) => Promise<void>;
+  register: (u: string, p: string, opts?: { website?: string; t?: number }) => Promise<void>;
   logout: () => Promise<void>;
   isFav: (kind: FavKind, ref: string | number) => boolean;
   toggleFav: (kind: FavKind, ref: string | number) => Promise<void>;
@@ -54,8 +54,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     void refreshFavs();
   }, [refreshFavs]);
 
-  const register = useCallback(async (u: string, p: string) => {
-    const r = await authRegister(u, p);
+  const register = useCallback(async (u: string, p: string, opts?: { website?: string; t?: number }) => {
+    const r = await authRegister(u, p, opts);
     setMe(r.user);
     setFavs(EMPTY_FAVS);
   }, []);

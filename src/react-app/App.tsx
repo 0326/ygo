@@ -13,7 +13,8 @@ import { Sets, SetDetail } from "./pages/Sets";
 
 // Track B（Canvas 创作套件）按需加载
 const CardMaker = lazy(() => import("./pages/CardMaker"));
-const ShareImage = lazy(() => import("./pages/ShareImage"));
+// M11：分享长图功能暂时下线（保留代码以备恢复）
+// const ShareImage = lazy(() => import("./pages/ShareImage"));
 const DeckBuilder = lazy(() => import("./pages/DeckBuilder"));
 // M9 壁纸图库按需加载
 const Wallpapers = lazy(() => import("./pages/Wallpapers"));
@@ -21,6 +22,8 @@ const Wallpapers = lazy(() => import("./pages/Wallpapers"));
 const Login = lazy(() => import("./pages/Login"));
 const Me = lazy(() => import("./pages/Me"));
 const Admin = lazy(() => import("./pages/Admin"));
+// M11 反馈建议按需加载
+const Feedback = lazy(() => import("./pages/Feedback"));
 
 export default function App() {
   return (
@@ -38,12 +41,14 @@ export default function App() {
             <Route path="/sets" element={<Sets />} />
             <Route path="/sets/:code" element={<SetDetail />} />
             <Route path="/maker" element={<CardMaker />} />
-            <Route path="/share" element={<ShareImage />} />
+            {/* M11：分享长图功能暂时下线（保留代码以备恢复） */}
+            {/* <Route path="/share" element={<ShareImage />} /> */}
             <Route path="/deck" element={<DeckBuilder />} />
             <Route path="/wallpapers" element={<Wallpapers />} />
             <Route path="/login" element={<Login />} />
             <Route path="/me" element={<Me />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/feedback" element={<Feedback />} />
             <Route path="*" element={<Home />} />
           </Routes>
         </Suspense>

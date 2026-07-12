@@ -14,7 +14,10 @@ export default function ArchetypeDetail() {
 
   useEffect(() => {
     setData(null); setErr(""); window.scrollTo(0, 0);
-    getArchetype(id!).then(setData).catch((e) => setErr(String(e.message || e)));
+    getArchetype(id!).then((d) => {
+      setData(d);
+      if (d) document.title = `${d.archetype.cn_name || d.archetype.en_name}系列 · 游戏王集卡社`;
+    }).catch((e) => setErr(String(e.message || e)));
   }, [id]);
 
   if (err) return <div className="container page"><ErrorBox msg={err} /></div>;
@@ -50,7 +53,8 @@ export default function ArchetypeDetail() {
           {groups.map((g) => <div className="stat" key={g.key}><b>{g.cards.length}</b><span>{g.label}</span></div>)}
         </div>
         <div className="cta" style={{ marginTop: 22 }}>
-          <Link className="btn btn-primary" to={`/share?archetype=${a.id}`}>{t("nav.share")} →</Link>
+          {/* M11：分享长图功能暂时下线（保留代码以备恢复） */}
+          {/* <Link className="btn btn-primary" to={`/share?archetype=${a.id}`}>{t("nav.share")} →</Link> */}
         </div>
       </div>
 

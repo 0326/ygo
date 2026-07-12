@@ -171,3 +171,26 @@ export interface AdminUserRow {
   fav_count: number;
   deck_count: number;
 }
+
+// ---------------- M11 反馈建议 ----------------
+export type FeedbackCategory = "bug" | "feature" | "other";
+export type FeedbackStatus = "open" | "resolved";
+
+export interface FeedbackItem {
+  id: number;
+  user_id: number;
+  username: string;
+  category: FeedbackCategory;
+  content: string;
+  reply: string | null;
+  status: FeedbackStatus;
+  created_at: number;
+  replied_at: number | null;
+}
+
+export interface FeedbackListResponse {
+  total: number;
+  page: number;
+  size: number;
+  items: FeedbackItem[];
+}
