@@ -70,6 +70,7 @@ const CN = {
   "wp.noMore": "— 已经到底啦 —",
   "wp.loadingHd": "高清图加载中…",
   "wp.delete": "删除", "wp.deleteTip": "删除此壁纸（管理员）",
+  "wp.toTop": "返回顶部",
   // 账号（M10）
   "auth.login": "登录", "auth.register": "注册", "auth.logout": "退出登录",
   "auth.username": "用户名", "auth.password": "密码", "auth.password2": "确认密码",
@@ -145,6 +146,7 @@ const JP: Record<UIKey, string> = {
   "wp.noMore": "— これ以上ありません —",
   "wp.loadingHd": "高画質読込中…",
   "wp.delete": "削除", "wp.deleteTip": "この壁紙を削除（管理者）",
+  "wp.toTop": "トップへ戻る",
   "auth.login": "ログイン", "auth.register": "新規登録", "auth.logout": "ログアウト",
   "auth.username": "ユーザー名", "auth.password": "パスワード", "auth.password2": "パスワード（確認）",
   "auth.mismatch": "パスワードが一致しません",
@@ -215,6 +217,7 @@ const EN: Record<UIKey, string> = {
   "wp.noMore": "— No more —",
   "wp.loadingHd": "Loading HD…",
   "wp.delete": "Delete", "wp.deleteTip": "Delete this wallpaper (admin)",
+  "wp.toTop": "Back to top",
   "auth.login": "Log in", "auth.register": "Sign up", "auth.logout": "Log out",
   "auth.username": "Username", "auth.password": "Password", "auth.password2": "Confirm password",
   "auth.mismatch": "Passwords do not match",

@@ -1,5 +1,5 @@
 // M9 壁纸图库：全网游戏王高清壁纸/原画/角色图，搜索 + 设备(PC/手机)/分类筛选 + 灯箱预览下载。
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { listWallpapers, listWallpaperTags, adminDeleteWallpaper } from "../lib/api";
 import type { WallpaperItem, WallpaperTagCount } from "../../shared/types";
@@ -50,12 +50,48 @@ export default function Wallpapers() {
   const [tags, setTags] = useState<WallpaperTagCount[]>([]);
   const [active, setActive] = useState<WallpaperItem | null>(null); // 灯箱
   const [delMsg, setDelMsg] = useState("");
+  const [showTop, setShowTop] = useState(false); // 返回顶部按钮
   const pageRef = useRef(1);
   const seq = useRef(0);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const ioRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => { listWallpaperTags().then(setTags).catch(() => {}); }, []);
+
+  // 列数随容器宽度变化（最小 1080px，默认 4 列）
+  const [colCount, setColCount] = useState(4);
+  useEffect(() => {
+    const calc = () => {
+      const w = window.innerWidth;
+      setColCount(w <= 800 ? 2 : w <= 1100 ? 3 : 4);
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, []);
+
+  // 固定列瀑布流：贪心分配到最短列，已分配项的列归属稳定（追加不重排）
+  const columns = useMemo(() => {
+    const cols: WallpaperItem[][] = Array.from({ length: colCount }, () => []);
+    const heights = new Array(colCount).fill(0);
+    for (const w of items) {
+      let min = 0;
+      for (let i = 1; i < colCount; i++) if (heights[i] < heights[min]) min = i;
+      cols[min].push(w);
+      // 列宽固定，高度增量 ∝ 1/ratio
+      heights[min] += 1 / (w.ratio || 1);
+    }
+    return cols;
+  }, [items, colCount]);
+
+  // 滚动超过 2 屏显示返回顶部
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > window.innerHeight * 2);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  const toTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   // 首次加载或筛选/搜索/排序变化时重置并拉第 1 页
   useEffect(() => {
@@ -221,13 +257,17 @@ export default function Wallpapers() {
         <>
           <div className="muted" style={{ margin: "14px 0 10px", fontSize: 13 }}>{t("wp.matched", { n: total })}</div>
           <div className="wp-grid">
-            {items.map((w) => (
-              <button key={w.id} className={`wp-card ${w.device}`} onClick={() => setActive(w)} title={w.tags.join(", ")}>
-                <img src={w.thumb_url} alt={w.title} loading="lazy"
-                  style={{ aspectRatio: String(w.ratio || 1) }} />
-                <span className="wp-res">{w.width}×{w.height}</span>
-                <span className={`wp-dev ${w.device}`}>{w.device === "pc" ? "🖥" : "📱"}</span>
-              </button>
+            {columns.map((col, ci) => (
+              <div className="wp-col" key={ci}>
+                {col.map((w) => (
+                  <button key={w.id} className={`wp-card ${w.device}`} onClick={() => setActive(w)} title={w.tags.join(", ")}>
+                    <img src={w.thumb_url} alt={w.title} loading="lazy"
+                      style={{ aspectRatio: String(w.ratio || 1) }} />
+                    <span className="wp-res">{w.width}×{w.height}</span>
+                    <span className={`wp-dev ${w.device}`}>{w.device === "pc" ? "🖥" : "📱"}</span>
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
           {/* 下拉加载哨兵 */}
@@ -247,6 +287,10 @@ export default function Wallpapers() {
           isAdmin={me?.role === "admin"}
           onDelete={onDelete}
         />
+      )}
+
+      {showTop && (
+        <button className="wp-to-top" onClick={toTop} title={t("wp.toTop")} aria-label={t("wp.toTop")}>↑</button>
       )}
     </div>
   );

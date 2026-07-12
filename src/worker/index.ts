@@ -99,15 +99,15 @@ app.get("/api/wallpapers/stats", (c) =>
 );
 app.get("/api/wallpapers", (c) => {
   const q = c.req.query();
-  // 带 ids 的请求是用户私有收藏查询，不走边缘缓存避免串数据
-  const build = () => W.listWallpapers(c.env.ygo_db, {
+  // 壁纸列表会因管理端增删而变化，不走边缘缓存，确保删除后刷新立即生效
+  return W.listWallpapers(c.env.ygo_db, {
     q: q.q, device: q.device, category: q.category, tag: q.tag, sort: q.sort,
     ids: q.ids,
     page: intParam(q.page, 1),
     size: intParam(q.size, 24),
-  });
-  if (q.ids) return build().then((data) => Response.json(data, { headers: { "cache-control": "no-store" } }));
-  return cached(c, 300, build);
+  }).then((data) => Response.json(data, {
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  }));
 });
 app.get("/wp-img/:id/s", (c) =>
   W.proxyWallpaperImage(c.req.raw, c.env.ygo_db, c.req.param("id"), true, c.env.IMG_BUCKET, c.executionCtx)
@@ -213,6 +213,14 @@ app.delete("/api/me/decks/:id", async (c) => {
 });
 
 // ---------- 管理端（M10：用户概览 + 壁纸 CRUD） ----------
+// 增删改后清除相关边缘缓存：列表已 no-store，这里只清 tags/stats 与被删图片
+function purgeWallpaperCache(req: Request, ctx: ExecutionContext, id?: string) {
+  const base = new URL(req.url).origin;
+  const urls = [`${base}/api/wallpapers/tags`, `${base}/api/wallpapers/stats`];
+  if (id) urls.push(`${base}/wp-img/${id}`, `${base}/wp-img/${id}/s`);
+  ctx.waitUntil(Promise.all(urls.map((u) => caches.default.delete(new Request(u, { method: "GET" })))));
+}
+
 app.get("/api/admin/users", async (c) => {
   const u = await requireAdmin(c);
   if (u instanceof Response) return u;
@@ -224,6 +232,7 @@ app.post("/api/admin/wallpapers", async (c) => {
   const body = await c.req.json<W.WallpaperUpsert>().catch(() => null);
   if (!body) return json({ error: "请求体无效" }, 400);
   const r = await W.adminCreateWallpaper(c.env.ygo_db, body);
+  if (!("error" in r)) purgeWallpaperCache(c.req.raw, c.executionCtx);
   return json(r, "error" in r ? 400 : 200);
 });
 app.put("/api/admin/wallpapers/:id", async (c) => {
@@ -232,12 +241,20 @@ app.put("/api/admin/wallpapers/:id", async (c) => {
   const body = await c.req.json<Partial<W.WallpaperUpsert>>().catch(() => null);
   if (!body) return json({ error: "请求体无效" }, 400);
   const r = await W.adminUpdateWallpaper(c.env.ygo_db, c.req.param("id"), body);
+  if (!("error" in r)) {
+    const safe = c.req.param("id").replace(/[^a-z0-9]/gi, "");
+    purgeWallpaperCache(c.req.raw, c.executionCtx, safe);
+  }
   return json(r, "error" in r ? 400 : 200);
 });
 app.delete("/api/admin/wallpapers/:id", async (c) => {
   const u = await requireAdmin(c);
   if (u instanceof Response) return u;
   const r = await W.adminDeleteWallpaper(c.env.ygo_db, c.req.param("id"), c.env.IMG_BUCKET);
+  if (!("error" in r)) {
+    const safe = c.req.param("id").replace(/[^a-z0-9]/gi, "");
+    purgeWallpaperCache(c.req.raw, c.executionCtx, safe);
+  }
   return json(r, "error" in r ? 400 : 200);
 });
 

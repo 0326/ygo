@@ -11,17 +11,20 @@
 .wp-tag:hover { border-color: var(--gold); color: var(--text-0); }
 .wp-tag.on { background: var(--gold); border-color: transparent; color: #2a2208; font-weight: 600; }
 
-/* 瀑布流：CSS 多列，卡片按原始宽高比展示 */
-.wp-grid { column-count: 4; column-gap: 14px; }
-@media (max-width: 1100px) { .wp-grid { column-count: 3; } }
-@media (max-width: 800px)  { .wp-grid { column-count: 2; } }
-@media (max-width: 480px)  { .wp-grid { column-count: 2; column-gap: 10px; } }
+/* 瀑布流：固定列容器横向排列，每列纵向独立追加，杜绝追加重排 */
+.wp-grid {
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.wp-col {
+  display: flex; flex-direction: column; gap: 14px;
+  flex: 1 1 0; min-width: 0;
+}
 
 .wp-card {
-  position: relative; display: block; width: 100%; margin: 0 0 14px;
+  position: relative; display: block; width: 100%;
   padding: 0; border: 1px solid var(--line); border-radius: var(--radius-sm);
   overflow: hidden; background: var(--bg-2); cursor: zoom-in;
-  break-inside: avoid; transition: .15s;
+  transition: .15s;
 }
 .wp-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: var(--shadow-glow); }
 .wp-card img { display: block; width: 100%; height: auto; object-fit: cover; background: var(--bg-1); }
@@ -35,6 +38,19 @@
 .wp-res { right: 6px; }
 .wp-dev { left: 6px; }
 .wp-card:hover .wp-res, .wp-card:hover .wp-dev { opacity: 1; }
+
+/* 返回顶部 */
+.wp-to-top {
+  position: fixed; right: 28px; bottom: 28px; z-index: 150;
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--line-strong); background: var(--bg-2);
+  color: var(--text-0); font-size: 20px; line-height: 1;
+  cursor: pointer; box-shadow: var(--shadow-glow);
+  transition: .15s; opacity: 0; transform: translateY(8px);
+  animation: wp-top-in .2s forwards;
+}
+.wp-to-top:hover { border-color: var(--gold); transform: translateY(0); }
+@keyframes wp-top-in { to { opacity: 1; transform: translateY(0); } }
 
 /* 灯箱 */
 .wp-lightbox {
@@ -50,6 +66,7 @@
 }
 .wp-lb-img-wrap {
   position: relative;
+  align-self: center; /* 竖图窄容器在 body 内水平居中，不靠左 */
   background: #000;
   /* 宽度取「最大 1200px / 94vw / 按最大高度反推」三者最小值，
      保证横图不超宽、竖图不超高；高度由 aspect-ratio 推导，
@@ -85,7 +102,7 @@
 .wp-lb-close:hover { background: rgba(0,0,0,.8); }
 .wp-lb-meta {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
-  flex-wrap: wrap; padding: 12px 16px;
+  flex-wrap: wrap; padding: 12px 16px; align-self: stretch;
 }
 .wp-lb-info { font-size: 13px; color: var(--text-1); min-width: 0; }
 .wp-lb-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
