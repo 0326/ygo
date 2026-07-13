@@ -5,7 +5,8 @@
 # Created by git for backups. To disable backups in Git:
 # $ git config --global mergetool.keepBackup false
 *.orig
-
+cards/
+douyin/
 # Created by git when using merge tools for conflicts
 *.BACKUP.*
 *.BASE.*
@@ -193,6 +194,7 @@ dist
 
 ### Wrangler ###
 .wrangler/
+.wrangler_home/
 .env*
 !.env.example
 .dev.vars*

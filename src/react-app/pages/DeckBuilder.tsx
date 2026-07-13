@@ -36,6 +36,7 @@ import {
   BAN_LIMIT,
 } from "../lib/labels";
 import { useLang, cardName, attrName } from "../lib/i18n";
+import { imgThumb } from "../lib/cardImage";
 import { useUser } from "../lib/user";
 import { saveMyDeck } from "../lib/api";
 import { useNavigate } from "react-router-dom";
@@ -299,7 +300,7 @@ export default function DeckBuilder() {
         resolve(img);
       };
       img.onerror = () => resolve(null);
-      img.src = c.thumb_url;
+      img.src = imgThumb(c.id, lang);
     });
 
   const genImage = async () => {
@@ -453,7 +454,7 @@ export default function DeckBuilder() {
                       }}
                       title={cname}
                     >
-                      <img src={c.thumb_url} alt={cname} loading="lazy" />
+                      <img src={imgThumb(c.id, lang)} alt={cname} loading="lazy" />
                       {c.ban && (
                         <span className="pool-ban">
                           <BanBadge ban={c.ban} format={format} dot />
@@ -727,7 +728,7 @@ function DeckZone({
               style={fc ? { boxShadow: `0 0 0 1px ${fc.base}66` } : undefined}
             >
               {c ? (
-                <img src={c.thumb_url} alt={cardName(c, lang)} loading="lazy" />
+                <img src={imgThumb(c.id, lang)} alt={cardName(c, lang)} loading="lazy" />
               ) : (
                 <span className="zone-id">{id}</span>
               )}

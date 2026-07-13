@@ -7,6 +7,7 @@ import { CardGrid } from "../components/CardThumbnail";
 import { Spinner, ErrorBox } from "../components/common";
 import { frameColor, statStr } from "../lib/labels";
 import { useLang, cardName, cardAltName, cardEffect, frameName, raceName, cardTypeName, setName } from "../lib/i18n";
+import { imgFull, imgThumb } from "../lib/cardImage";
 
 export default function CardDetail() {
   const { id } = useParams();
@@ -64,7 +65,7 @@ export default function CardDetail() {
         <div className="detail-art">
           <img
             className="detail-main-img"
-            src={art?.url}
+            src={imgFull(art?.image_key || card.id, lang)}
             alt={name}
             onClick={() => setZoom(true)}
             style={{ cursor: "zoom-in", boxShadow: `0 12px 40px ${fc.base}33, var(--shadow-2)` }}
@@ -74,7 +75,7 @@ export default function CardDetail() {
               <div className="gallery-thumbs">
                 {card.artworks.map((a, i) => (
                   <img
-                    key={a.image_key} src={a.thumb_url} alt={a.variant_name || name}
+                    key={a.image_key} src={imgThumb(a.image_key, lang)} alt={a.variant_name || name}
                     className={i === active ? "active" : ""}
                     onClick={() => setActive(i)} loading="lazy"
                   />
@@ -86,7 +87,7 @@ export default function CardDetail() {
           <div style={{ marginTop: 16, display: "flex", gap: 10, flexWrap: "wrap" }}>
             <FavButton kind="card" refId={card.id} />
             <Link className="btn" to={`/maker?from=${card.id}`}>{t("detail.makeCard")}</Link>
-            <a className="btn btn-ghost" href={art?.url} target="_blank" rel="noreferrer">{t("detail.viewOriginal")}</a>
+            <a className="btn btn-ghost" href={imgFull(art?.image_key || card.id, lang)} target="_blank" rel="noreferrer">{t("detail.viewOriginal")}</a>
           </div>
         </div>
 
@@ -193,7 +194,7 @@ export default function CardDetail() {
 
       {zoom && art && (
         <div className="lightbox" onClick={() => setZoom(false)}>
-          <img src={art.url} alt={name} />
+          <img src={imgFull(art.image_key, lang)} alt={name} />
         </div>
       )}
     </div>

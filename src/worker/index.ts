@@ -4,6 +4,7 @@ import * as Q from "./lib/queries";
 import * as W from "./lib/wallpapers";
 import * as A from "./lib/auth";
 import { proxyImage } from "./lib/images";
+import type { Lang } from "./lib/images";
 import { renderSeoHtml, sitemapXml, isStaticAsset } from "./lib/seo";
 
 const app = new Hono<{ Bindings: Env }>();
@@ -296,15 +297,20 @@ app.put("/api/admin/feedback/:id", async (c) => {
 // ---------- 站点统计 ----------
 app.get("/api/stats", (c) => cached(c, 3600, () => Q.stats(c.env.ygo_db)));
 
-// ---------- 卡图（M0.2：R2 自托管 + 懒回填） ----------
+// ---------- 卡图（M0.2：R2 自托管 + 懒回填 + 多语言） ----------
+function parseLang(q: string | undefined): Lang {
+  if (q === "cn" || q === "jp" || q === "en") return q;
+  return "en";
+}
+
 app.get("/img/:key/s", (c) =>
-  proxyImage(c.req.raw, c.req.param("key"), "small", c.env.IMG_BUCKET, c.executionCtx)
+  proxyImage(c.req.raw, c.req.param("key"), "small", c.env.IMG_BUCKET, c.executionCtx, parseLang(c.req.query("lang")))
 );
 app.get("/img/:key/art", (c) =>
-  proxyImage(c.req.raw, c.req.param("key"), "art", c.env.IMG_BUCKET, c.executionCtx)
+  proxyImage(c.req.raw, c.req.param("key"), "art", c.env.IMG_BUCKET, c.executionCtx, "en")
 );
 app.get("/img/:key", (c) =>
-  proxyImage(c.req.raw, c.req.param("key"), "full", c.env.IMG_BUCKET, c.executionCtx)
+  proxyImage(c.req.raw, c.req.param("key"), "full", c.env.IMG_BUCKET, c.executionCtx, parseLang(c.req.query("lang")))
 );
 
 app.all("/api/*", (c) => c.json({ error: "unknown endpoint" }, 404));

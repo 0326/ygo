@@ -26,6 +26,7 @@ import {
   ST_SUBTYPE_OPTIONS,
 } from "../lib/labels";
 import { useLang, cardName, cardEffect } from "../lib/i18n";
+import { imgThumb } from "../lib/cardImage";
 import {
   CARD_RATIO,
   exportCardPng,
@@ -413,7 +414,7 @@ export default function CardMaker() {
                     {sug.map((c) => (
                       <li key={c.id}>
                         <button type="button" onMouseDown={(e) => { e.preventDefault(); pickSuggestion(c); }}>
-                          <img src={c.thumb_url} alt="" loading="lazy" />
+                          <img src={imgThumb(c.id, lang)} alt="" loading="lazy" />
                           <span className="ms-name">{cardName(c, lang)}</span>
                           <span className="ms-id">{c.id}</span>
                         </button>

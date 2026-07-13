@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { CardSummary } from "../../shared/types";
 import { frameColor, MD_RARITY_COLOR } from "../lib/labels";
 import { useLang, cardName } from "../lib/i18n";
+import { imgThumb } from "../lib/cardImage";
 import { AttributeIcon, BanBadge } from "./badges";
 
 export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; showAttr?: boolean }) {
@@ -29,7 +30,7 @@ export function CardThumbnail({ card, showAttr = false }: { card: CardSummary; s
         <div className="ct-fallback">{name}</div>
       ) : (
         <img
-          src={card.thumb_url}
+          src={imgThumb(card.id, lang)}
           alt={name}
           loading="lazy"
           onLoad={() => setLoaded(true)}

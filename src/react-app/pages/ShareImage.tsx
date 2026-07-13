@@ -5,6 +5,7 @@ import { useSearchParams } from "react-router-dom";
 import { getCard, searchCards, getArchetype } from "../lib/api";
 import { FRAME_CN, raceCn, statStr } from "../lib/labels";
 import { useLang, cardName } from "../lib/i18n";
+import { imgFull, imgThumb } from "../lib/cardImage";
 import {
   composeShareImage,
   exportShareImage,
@@ -160,12 +161,12 @@ export default function ShareImage() {
     if (!tray.length) return;
     setGenerating(true);
     try {
-      // 卡面模式用大图(url)，其余用缩略(thumb_url)
+      // 卡面模式用大图，其余用缩略
       const useFull = layout === "cards";
       const items: ShareItem[] = await Promise.all(
         tray.map(async (c) => ({
           card: c,
-          image: await getImg(useFull ? `/img/${c.id}` : c.thumb_url),
+          image: await getImg(useFull ? imgFull(c.id, lang) : imgThumb(c.id, lang)),
         })),
       );
       const canvas = await composeShareImage(items, {
@@ -226,7 +227,7 @@ export default function ShareImage() {
                       disabled={inTray(c.id)}
                       title={cardName(c, lang)}
                     >
-                      <img src={c.thumb_url} alt={cardName(c, lang)} loading="lazy" />
+                      <img src={imgThumb(c.id, lang)} alt={cardName(c, lang)} loading="lazy" />
                       <span className="share-result-name">{cardName(c, lang)}</span>
                       <span className="share-result-add">
                         {inTray(c.id) ? "已加入" : "+ 加入"}
@@ -311,7 +312,7 @@ export default function ShareImage() {
                 {tray.map((c, i) => (
                   <li key={c.id} className="share-tray-item">
                     <span className="share-tray-idx">{i + 1}</span>
-                    <img src={c.thumb_url} alt={cardName(c, lang)} loading="lazy" />
+                    <img src={imgThumb(c.id, lang)} alt={cardName(c, lang)} loading="lazy" />
                     <div className="share-tray-info">
                       <strong>{cardName(c, lang)}</strong>
                       <span className="muted">
