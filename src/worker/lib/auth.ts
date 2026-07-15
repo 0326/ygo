@@ -162,20 +162,95 @@ export async function destroySession(db: D1Database, token: string): Promise<voi
   await db.prepare("DELETE FROM sessions WHERE token = ?").bind(token).run();
 }
 
-/** 从请求 Cookie 解析当前用户；无效/过期返回 null */
+/** 从请求解析当前用户：优先 Authorization: Bearer（小程序），回退 Cookie（Web）；无效/过期返回 null */
 export async function userFromRequest(db: D1Database, req: Request): Promise<AuthUser | null> {
-  const cookie = req.headers.get("cookie") || "";
-  const m = cookie.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE}=([0-9a-f]{32})`));
-  if (!m) return null;
+  let token = "";
+  // 小程序无 Cookie 机制，走 Bearer token
+  const auth = req.headers.get("authorization") || "";
+  const bm = auth.match(/^Bearer\s+([0-9a-f]{32})$/i);
+  if (bm) {
+    token = bm[1];
+  } else {
+    const cookie = req.headers.get("cookie") || "";
+    const m = cookie.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE}=([0-9a-f]{32})`));
+    if (m) token = m[1];
+  }
+  if (!token) return null;
   const now = Math.floor(Date.now() / 1000);
   const row = await db
     .prepare(
       `SELECT u.id, u.username, u.role, u.created_at FROM sessions s
        JOIN users u ON u.id = s.user_id WHERE s.token = ? AND s.expires_at > ?`,
     )
-    .bind(m[1], now)
+    .bind(token, now)
     .first<AuthUser>();
   return row ?? null;
+}
+
+/**
+ * 小程序一键登录：以 openid 关联/创建账号（用户名 mp_<platform>_<openid>）。
+ * 密码位填随机占位（该账号不走密码登录）。返回 AuthUser。
+ */
+export async function mpLoginOrRegister(
+  db: D1Database, platform: "weapp" | "tt", openid: string,
+): Promise<AuthUser> {
+  const username = `mp_${platform}_${openid}`.slice(0, 64);
+  const now = Math.floor(Date.now() / 1000);
+  const existing = await db
+    .prepare("SELECT id, username, role, created_at FROM users WHERE username = ?")
+    .bind(username)
+    .first<AuthUser>();
+  if (existing) {
+    await db.prepare("UPDATE users SET last_login = ? WHERE id = ?").bind(now, existing.id).run();
+    return existing;
+  }
+  const salt = randomHex(16);
+  const hash = await pbkdf2(randomHex(16), salt); // 随机占位，不可用于密码登录
+  const cnt = await db.prepare("SELECT count(*) AS n FROM users").first<{ n: number }>();
+  const role = (cnt?.n ?? 0) === 0 ? "admin" : "user";
+  const r = await db
+    .prepare("INSERT INTO users (username, pass_hash, pass_salt, role, created_at, last_login) VALUES (?,?,?,?,?,?)")
+    .bind(username, hash, salt, role, now, now)
+    .run();
+  return { id: r.meta.last_row_id as number, username, role: role as AuthUser["role"], created_at: now };
+}
+
+/** 用 code 换 openid：配置了平台密钥则走官方 jscode2session，否则 dev 模式派生确定性 openid */
+export async function resolveOpenid(
+  platform: "weapp" | "tt", code: string, env: Record<string, string | undefined>,
+): Promise<{ openid?: string; error?: string }> {
+  const appid = platform === "tt" ? env.TT_APPID : env.WX_APPID;
+  const secret = platform === "tt" ? env.TT_SECRET : env.WX_SECRET;
+  // dev 兜底：无密钥或 dev code，用 code 派生确定性 openid，便于本地/H5 验证
+  if (!appid || !secret || code === "H5_DEV_CODE") {
+    const h = await sha256Hex(`${platform}:${code}`);
+    return { openid: `dev_${h.slice(0, 24)}` };
+  }
+  const url =
+    platform === "tt"
+      ? `https://developer.toutiao.com/api/apps/v2/jscode2session`
+      : `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
+  try {
+    const res =
+      platform === "tt"
+        ? await fetch(url, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ appid, secret, code }),
+          })
+        : await fetch(url);
+    const data = (await res.json()) as { openid?: string; data?: { openid?: string }; errmsg?: string; message?: string };
+    const openid = data.openid || data.data?.openid;
+    if (!openid) return { error: data.errmsg || data.message || "换取 openid 失败" };
+    return { openid };
+  } catch {
+    return { error: "登录服务暂不可用" };
+  }
+}
+
+async function sha256Hex(s: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export function sessionCookie(token: string, expires: number): string {

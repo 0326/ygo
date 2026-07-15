@@ -1,0 +1,33 @@
+/* 全局主题变量（大师决斗风 · 暗蓝科技 / 青金能量） */
+page {
+  --bg: #05070e;
+  --panel: #0c1424;
+  --panel-2: #111c33;
+  --line: #1e2f4d;
+  --line-glow: #2f5c8f;
+  --t0: #eaf2ff;
+  --t1: #a9bcd8;
+  --t2: #617a9c;
+  --cyan: #3fd8ee;
+  --cyan-deep: #0b9bc4;
+  --gold: #f0cb6a;
+  --mon: #e0a94a;
+  --spell: #17b89a;
+  --trap: #d0578f;
+  --fusion: #9b6fd4;
+  --ritual: #4b8fe0;
+  --link: #2f7fd6;
+  background-color: var(--bg);
+  color: var(--t0);
+  font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
+}
+
+view, text, input, textarea, scroll-view, button {
+  box-sizing: border-box;
+}
+
+.screen {
+  min-height: 100vh;
+  background:
+    radial-gradient(120% 60% at 50% -8%, #16294a 0%, #0a1220 48%, #05070e 100%);
+}

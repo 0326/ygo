@@ -1,0 +1,14 @@
+{
+  "miniprogramRoot": "dist/weapp/",
+  "projectname": "ygo-miniprogram",
+  "description": "游戏王决斗者卡查",
+  "appid": "touristappid",
+  "setting": {
+    "urlCheck": true,
+    "es6": false,
+    "enhance": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram"
+}

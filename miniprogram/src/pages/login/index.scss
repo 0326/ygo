@@ -1,0 +1,65 @@
+.login {
+  display: flex; flex-direction: column; min-height: 100vh;
+  background:
+    radial-gradient(90% 46% at 50% 22%, rgba(63, 216, 238, 0.16), transparent 62%),
+    radial-gradient(120% 70% at 50% -8%, #16294a, #0a1220 48%, #05070e 100%);
+
+  .hero { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; }
+  .ring {
+    width: 260px; height: 260px; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; border: 2px solid rgba(63, 216, 238, 0.3);
+  }
+  .disc {
+    width: 180px; height: 180px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #12233d, #0a1120); border: 3px solid var(--cyan);
+    border-radius: 30px;
+    box-shadow: 0 0 44px rgba(63, 216, 238, 0.4), inset 0 0 30px rgba(63, 216, 238, 0.15);
+  }
+  .eye {
+    width: 88px; height: 88px; border-radius: 50%; border: 4px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 18px rgba(240, 203, 106, 0.5);
+  }
+  .eye::after {
+    content: ''; width: 34px; height: 34px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff, var(--gold) 55%, #a8863c);
+    box-shadow: 0 0 12px var(--gold);
+  }
+  .brand {
+    margin-top: 40px; font-size: 52px; font-weight: 800; color: var(--gold);
+    letter-spacing: 4px; text-shadow: 0 0 24px rgba(240, 203, 106, 0.45);
+  }
+  .slogan { margin-top: 16px; font-size: 20px; color: var(--cyan); letter-spacing: 6px; }
+  .perks { margin-top: 50px; display: flex; gap: 20px; }
+  .perk {
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border: 2px solid var(--line); padding: 24px 32px; border-radius: 12px;
+  }
+  .perk-i { font-size: 34px; color: var(--cyan); }
+  .perk-t { font-size: 22px; color: var(--t1); }
+
+  .bottom { padding: 0 48px 80px; }
+  .btn {
+    height: 96px; display: flex; align-items: center; justify-content: center; gap: 18px;
+    font-size: 30px; font-weight: 700; margin-bottom: 24px; border-radius: 48px;
+  }
+  .btn.wx { background: linear-gradient(100deg, #059a4c, #07c160); color: #fff; }
+  .btn.tt { background: linear-gradient(100deg, #111722, #1c2432); border: 2px solid #3a3f4d; color: #fff; }
+  .btn-ic {
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 800; border-radius: 10px;
+  }
+  .wx-ic { background: rgba(255, 255, 255, 0.28); }
+  .tt-ic { background: linear-gradient(135deg, #25f4ee, #fe2c55); color: #0b0c10; }
+
+  .guest { display: block; text-align: center; font-size: 26px; color: var(--t2); padding: 12px 0 28px; }
+  .privacy { display: flex; align-items: flex-start; justify-content: center; gap: 14px; }
+  .ck {
+    width: 30px; height: 30px; flex: none; border: 2px solid var(--cyan); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: var(--cyan); font-size: 18px;
+  }
+  .ck.on { background: rgba(63, 216, 238, 0.15); }
+  .privacy-t { font-size: 20px; color: var(--t2); line-height: 1.6; max-width: 520px; }
+}

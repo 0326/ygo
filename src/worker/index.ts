@@ -147,6 +147,20 @@ app.post("/api/auth/login", async (c) => {
   return json({ user: r.user }, 200, { "set-cookie": A.sessionCookie(s.token, s.expires) });
 });
 
+// 小程序一键登录：code → openid → 关联/建账号 → 返回 { user, token }（token 走 Bearer，无 Cookie）
+app.post("/api/auth/mp", async (c) => {
+  const body = await c.req.json<{ platform?: string; code?: string }>().catch(() => ({} as Record<string, never>));
+  const platform = body.platform === "tt" ? "tt" : "weapp";
+  const code = String(body.code || "").trim();
+  if (!code) return json({ error: "缺少登录凭证" }, 400);
+  const env = c.env as unknown as Record<string, string | undefined>;
+  const r = await A.resolveOpenid(platform, code, env);
+  if (r.error || !r.openid) return json({ error: r.error || "登录失败" }, 401);
+  const user = await A.mpLoginOrRegister(c.env.ygo_db, platform, r.openid);
+  const s = await A.createSession(c.env.ygo_db, user.id);
+  return json({ user, token: s.token });
+});
+
 app.post("/api/auth/logout", async (c) => {
   const cookie = c.req.raw.headers.get("cookie") || "";
   const m = cookie.match(new RegExp(`(?:^|;\\s*)${A.SESSION_COOKIE}=([0-9a-f]{32})`));

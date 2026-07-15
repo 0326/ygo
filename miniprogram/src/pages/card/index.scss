@@ -1,0 +1,73 @@
+.carddetail {
+  display: flex; flex-direction: column; height: 100vh;
+
+  .scroll { flex: 1; padding: 0 24px; }
+
+  .hero { position: relative; display: flex; justify-content: center; padding: 24px 0 20px; }
+  .hero-glow { position: absolute; width: 420px; height: 420px; top: 20px; border-radius: 50%; filter: blur(6px); }
+  .hero-img {
+    width: 340px; height: 496px; position: relative; z-index: 1; border-radius: 12px;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, 0.6);
+  }
+
+  .titlebar { text-align: center; }
+  .t-name {
+    display: block; font-size: 44px; font-weight: 800; color: var(--gold);
+    text-shadow: 0 0 20px rgba(240, 203, 106, 0.4);
+  }
+  .t-sub { display: block; font-size: 22px; color: var(--t2); margin-top: 8px; }
+
+  .badges { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 24px 0; }
+  .badge {
+    font-size: 22px; padding: 10px 22px; background: var(--panel);
+    border: 2px solid var(--line-glow); color: var(--t1); border-radius: 8px;
+  }
+  .badge-gold { background: rgba(240, 203, 106, 0.14); border-color: var(--gold); color: var(--gold); }
+
+  .statgrid { display: flex; gap: 16px; margin-bottom: 24px; }
+  .stat {
+    flex: 1; padding: 22px 0; text-align: center;
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border: 2px solid var(--line); border-radius: 10px;
+  }
+  .stat-b { display: block; font-size: 34px; color: var(--cyan); font-family: monospace; }
+  .stat-gold { color: var(--gold); font-size: 26px; }
+  .stat-l { display: block; font-size: 18px; color: var(--t2); letter-spacing: 2px; margin-top: 6px; }
+
+  .banrow { display: flex; gap: 14px; justify-content: center; margin-bottom: 22px; flex-wrap: wrap; }
+  .ban { font-size: 22px; padding: 8px 20px; border: 2px solid; border-radius: 8px; }
+
+  .panel {
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border: 2px solid var(--line); border-radius: 12px; padding: 26px; margin-bottom: 24px;
+  }
+  .panel-h {
+    display: block; font-size: 22px; color: var(--cyan); font-weight: 700;
+    letter-spacing: 2px; padding-left: 16px; border-left: 5px solid var(--cyan); margin-bottom: 18px;
+  }
+  .panel-p { font-size: 27px; line-height: 1.75; color: var(--t1); white-space: pre-wrap; }
+
+  .print { display: flex; justify-content: space-between; padding: 12px 0; font-size: 24px; color: var(--t1); }
+  .print-r { color: var(--gold); font-weight: 700; }
+  .print-c { color: var(--t2); font-family: monospace; font-size: 22px; }
+
+  .foot-space { height: 40px; }
+
+  .actions {
+    display: flex; gap: 16px; padding: 20px 24px 40px;
+    border-top: 2px solid var(--line-glow); background: linear-gradient(#0a1220, #070b15);
+  }
+  .btn {
+    flex: 1; height: 88px; display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700; border-radius: 12px; margin: 0; padding: 0; line-height: 88px;
+  }
+  .btn.ghost { background: var(--panel); border: 2px solid var(--line-glow); color: var(--t0); }
+  .btn.primary {
+    background: linear-gradient(100deg, var(--cyan-deep), var(--cyan)); color: #04121a;
+    box-shadow: 0 0 22px rgba(63, 216, 238, 0.45);
+  }
+  .btn.primary::after { border: none; }
+}
+
+.center { display: flex; align-items: center; justify-content: center; height: 100vh; }
+.dim { color: var(--t2); font-size: 28px; }
