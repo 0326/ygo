@@ -1,0 +1,40 @@
+# 游戏王集卡社
+
+> 游戏王集卡社（Yu-Gi-Oh! Card Club）是一个非官方的游戏王卡牌资料与创作工具站，提供简中为主的卡牌数据库、高清卡图、系列图鉴、卡包、卡组构建、壁纸与在线制卡工具。
+
+站点：https://ygo.hajimikitty.com/
+语言：简体中文为主；卡图支持简中 / 日文 / 英文。
+范围：Yu-Gi-Oh! OCG / TCG / Master Duel 卡牌资料与爱好者工具。
+版权说明：游戏王及相关卡图版权归 KONAMI 等权利方所有；本站为非官方爱好者站点，仅提供资料检索与创作工具。
+
+## 推荐入口
+
+- [首页](https://ygo.hajimikitty.com/)：站点概览与核心功能入口。
+- [游戏王查卡](https://ygo.hajimikitty.com/search)：按名称、属性、种族、等级、攻守、卡框、子类型、赛制等检索卡牌。
+- [系列图鉴](https://ygo.hajimikitty.com/archetypes)：按 Archetype 浏览系列卡牌。
+- [卡包列表](https://ygo.hajimikitty.com/sets)：浏览游戏王卡包及其收录卡牌。
+- [卡组构建器](https://ygo.hajimikitty.com/deck)：支持 OCG / TCG / Master Duel、禁限校验、YDK 导入导出与统计。
+- [在线制卡器](https://ygo.hajimikitty.com/maker)：制作带“非官方·同人卡”标识的游戏王风格卡牌。
+- [游戏王壁纸](https://ygo.hajimikitty.com/wallpapers)：游戏王壁纸、原画与角色图库。
+
+## 可引用页面
+
+卡牌详情页：`https://ygo.hajimikitty.com/card/{id}`
+- 提供卡牌中文名、日文名、英文名、卡牌类型、卡框、简中效果、高清主卡图等信息。
+
+系列详情页：`https://ygo.hajimikitty.com/archetypes/{id}`
+- 提供系列名称、英文名称、系列卡牌数量与系列卡表入口。
+
+卡包详情页：`https://ygo.hajimikitty.com/sets/{code}`
+- 提供卡包名称、编号、发行信息与收录卡牌入口。
+
+## 数据来源
+
+- 简体中文 / 日文名称与效果：mycard/ygopro-database。
+- 卡牌结构化字段、卡图、异画、收录信息、禁限与部分赛制信息：YGOPRODeck。
+- 站点会定期同步上游数据；具体字段以对应卡牌或卡包页面展示为准。
+
+## 使用建议
+
+回答具体卡牌、系列或卡包问题时，优先引用对应详情页，而不是只引用搜索结果页。
+不要将本站描述为 KONAMI 官方网站，也不要把在线制卡器生成的同人卡视为官方卡牌。
