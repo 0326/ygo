@@ -4,6 +4,7 @@ import { getCard } from "../lib/api";
 import type { CardDetail as CardDetailT } from "../../shared/types";
 import { AttributeIcon, LevelStars, LinkMarkers, FrameBadge, BanBadges, SubtypeChips, MdRarityBadge, FavButton } from "../components/badges";
 import { CardGrid } from "../components/CardThumbnail";
+import { HoloCardPreview } from "../components/HoloCardPreview";
 import { Spinner, ErrorBox } from "../components/common";
 import { frameColor, statStr } from "../lib/labels";
 import { useLang, cardName, cardAltName, cardEffect, frameName, raceName, cardTypeName, setName } from "../lib/i18n";
@@ -63,12 +64,11 @@ export default function CardDetail() {
       <div className="detail-wrap">
         {/* 卡图 + 异画画廊 */}
         <div className="detail-art">
-          <img
-            className="detail-main-img"
+          <HoloCardPreview
             src={imgFull(art?.image_key || card.id, lang)}
             alt={name}
+            glowColor={fc.base}
             onClick={() => setZoom(true)}
-            style={{ cursor: "zoom-in", boxShadow: `0 12px 40px ${fc.base}33, var(--shadow-2)` }}
           />
           {card.artworks.length > 1 && (
             <>
