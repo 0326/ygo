@@ -12,7 +12,7 @@
   --holo-bg-x: 50%;
   --holo-bg-y: 50%;
   --holo-distance: 0;
-  --holo-opacity: .42;
+  --holo-opacity: .18;
 
   display: block;
   width: 100%;
@@ -23,14 +23,14 @@
   cursor: zoom-in;
   transform-style: preserve-3d;
   transform: rotateX(var(--holo-rotate-x)) rotateY(var(--holo-rotate-y)) translateZ(0);
-  transition: transform 120ms ease-out, filter 220ms ease;
+  transition: transform 150ms ease-out, filter 220ms ease;
   will-change: transform;
   isolation: isolate;
 }
 
 .holo-card-preview__tilt:hover,
 .holo-card-preview__tilt:focus-visible {
-  filter: drop-shadow(0 18px 24px rgba(0, 0, 0, .34));
+  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, .28));
 }
 
 .holo-card-preview__tilt:focus-visible {
@@ -48,9 +48,9 @@
   border: 1px solid var(--line-strong);
   background: var(--bg-2);
   box-shadow:
-    0 12px 40px color-mix(in srgb, var(--holo-glow) 20%, transparent),
+    0 10px 28px color-mix(in srgb, var(--holo-glow) 10%, transparent),
     var(--shadow-2),
-    inset 0 0 0 1px rgba(255, 255, 255, .04);
+    inset 0 0 0 1px rgba(255, 255, 255, .035);
   transform: translateZ(0.01px);
 }
 
@@ -76,40 +76,40 @@
 
 .holo-card-preview__shine {
   z-index: 2;
-  opacity: calc(.20 + var(--holo-opacity) * .55);
+  opacity: calc(.035 + var(--holo-opacity) * .17);
   background-image:
     radial-gradient(
       circle at var(--holo-pointer-x) var(--holo-pointer-y),
-      rgba(255,255,255,.98) 0%,
-      rgba(255,255,255,.58) 7%,
-      rgba(255,255,255,.10) 18%,
-      transparent 32%
+      rgba(255,255,255,.32) 0%,
+      rgba(255,255,255,.15) 8%,
+      rgba(255,255,255,.04) 18%,
+      transparent 30%
     ),
     repeating-linear-gradient(
       118deg,
-      rgba(255, 72, 102, .92) 0%,
-      rgba(255, 206, 84, .88) 9%,
-      rgba(114, 232, 165, .90) 18%,
-      rgba(88, 214, 255, .92) 27%,
-      rgba(121, 137, 255, .90) 36%,
-      rgba(217, 109, 255, .92) 45%,
-      rgba(255, 72, 102, .92) 54%
+      rgba(255, 92, 115, .28) 0%,
+      rgba(255, 218, 105, .24) 9%,
+      rgba(134, 226, 170, .26) 18%,
+      rgba(108, 205, 240, .27) 27%,
+      rgba(139, 151, 238, .25) 36%,
+      rgba(211, 128, 238, .25) 45%,
+      rgba(255, 92, 115, .28) 54%
     ),
     linear-gradient(
       135deg,
-      rgba(255,255,255,.24),
-      rgba(0,0,0,.20) 45%,
-      rgba(255,255,255,.18) 60%,
-      rgba(0,0,0,.24)
+      rgba(255,255,255,.10),
+      rgba(0,0,0,.08) 45%,
+      rgba(255,255,255,.07) 60%,
+      rgba(0,0,0,.10)
     );
-  background-size: 125% 125%, 330% 330%, 180% 180%;
+  background-size: 120% 120%, 360% 360%, 190% 190%;
   background-position:
     var(--holo-pointer-x) var(--holo-pointer-y),
     var(--holo-bg-x) var(--holo-bg-y),
     calc(100% - var(--holo-bg-x)) calc(100% - var(--holo-bg-y));
-  background-blend-mode: screen, overlay, soft-light;
-  mix-blend-mode: color-dodge;
-  filter: brightness(calc(.82 + var(--holo-distance) * .28)) contrast(1.45) saturate(1.35);
+  background-blend-mode: screen, soft-light, soft-light;
+  mix-blend-mode: soft-light;
+  filter: brightness(calc(.96 + var(--holo-distance) * .06)) contrast(1.08) saturate(.9);
   will-change: opacity, background-position, filter;
 }
 
@@ -122,21 +122,21 @@
   background-image:
     repeating-linear-gradient(
       90deg,
-      rgba(255,255,255,.16) 0 1px,
-      rgba(0,0,0,.08) 1px 3px,
-      transparent 3px 5px
+      rgba(255,255,255,.07) 0 1px,
+      rgba(0,0,0,.035) 1px 3px,
+      transparent 3px 6px
     ),
     repeating-linear-gradient(
       145deg,
-      transparent 0 12px,
-      rgba(255,255,255,.10) 12px 13px,
-      transparent 13px 25px
+      transparent 0 16px,
+      rgba(255,255,255,.045) 16px 17px,
+      transparent 17px 32px
     );
   background-position:
-    calc(var(--holo-bg-x) * 1.4) calc(var(--holo-bg-y) * .8),
+    calc(var(--holo-bg-x) * 1.2) calc(var(--holo-bg-y) * .9),
     calc(100% - var(--holo-bg-x)) var(--holo-bg-y);
   mix-blend-mode: overlay;
-  opacity: .75;
+  opacity: .32;
 }
 
 .holo-card-preview__shine::after {
@@ -144,31 +144,31 @@
     conic-gradient(
       from 210deg at var(--holo-pointer-x) var(--holo-pointer-y),
       transparent 0deg,
-      rgba(255,255,255,.18) 35deg,
-      rgba(119, 230, 255, .22) 70deg,
-      transparent 125deg,
-      rgba(255, 128, 220, .16) 210deg,
+      rgba(255,255,255,.055) 45deg,
+      rgba(132, 218, 238, .06) 85deg,
+      transparent 135deg,
+      rgba(229, 151, 210, .045) 220deg,
       transparent 300deg
     );
   mix-blend-mode: screen;
-  opacity: calc(.12 + var(--holo-distance) * .55);
-  filter: blur(.3px);
+  opacity: calc(.025 + var(--holo-distance) * .10);
+  filter: blur(.5px);
 }
 
 .holo-card-preview__glare {
   z-index: 3;
-  opacity: calc(.18 + var(--holo-opacity) * .65);
+  opacity: calc(.025 + var(--holo-opacity) * .12);
   background:
     radial-gradient(
       farthest-corner circle at var(--holo-pointer-x) var(--holo-pointer-y),
-      rgba(255,255,255,.72) 0%,
-      rgba(255,255,255,.32) 10%,
-      rgba(255,255,255,.06) 28%,
-      rgba(0,0,0,.16) 68%,
-      rgba(0,0,0,.34) 100%
+      rgba(255,255,255,.30) 0%,
+      rgba(255,255,255,.10) 9%,
+      rgba(255,255,255,.025) 24%,
+      transparent 58%,
+      rgba(0,0,0,.10) 100%
     );
   mix-blend-mode: overlay;
-  filter: brightness(1.05) contrast(1.15);
+  filter: brightness(1.01) contrast(1.04);
   will-change: opacity, background-position;
 }
 
@@ -180,11 +180,11 @@
   border-radius: var(--radius);
   background: radial-gradient(
     circle at var(--holo-pointer-x) var(--holo-pointer-y),
-    color-mix(in srgb, var(--holo-glow) 42%, transparent),
-    transparent 46%
+    color-mix(in srgb, var(--holo-glow) 18%, transparent),
+    transparent 42%
   );
-  filter: blur(18px);
-  opacity: calc(.25 + var(--holo-distance) * .45);
+  filter: blur(14px);
+  opacity: calc(.08 + var(--holo-distance) * .10);
   transform: translateZ(-1px);
   pointer-events: none;
 }
@@ -195,7 +195,7 @@
   }
 
   .holo-card-preview__shine {
-    opacity: calc(.18 + var(--holo-opacity) * .48);
+    opacity: calc(.03 + var(--holo-opacity) * .14);
   }
 }
 
@@ -207,6 +207,6 @@
 
   .holo-card-preview__shine,
   .holo-card-preview__glare {
-    opacity: .28;
+    opacity: .08;
   }
 }

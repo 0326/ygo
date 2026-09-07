@@ -26,10 +26,10 @@ export function HoloCardPreview({ src, alt, glowColor = "#d9b35e", onClick }: Ho
 
     el.style.setProperty("--holo-pointer-x", `${x}%`);
     el.style.setProperty("--holo-pointer-y", `${y}%`);
-    el.style.setProperty("--holo-rotate-x", `${-cy * 10}deg`);
-    el.style.setProperty("--holo-rotate-y", `${cx * 12}deg`);
-    el.style.setProperty("--holo-bg-x", `${50 - cx * 20}%`);
-    el.style.setProperty("--holo-bg-y", `${50 - cy * 24}%`);
+    el.style.setProperty("--holo-rotate-x", `${-cy * 5}deg`);
+    el.style.setProperty("--holo-rotate-y", `${cx * 6}deg`);
+    el.style.setProperty("--holo-bg-x", `${50 - cx * 10}%`);
+    el.style.setProperty("--holo-bg-y", `${50 - cy * 12}%`);
     el.style.setProperty("--holo-distance", distance.toFixed(3));
     el.style.setProperty("--holo-opacity", "1");
   };
@@ -59,7 +59,7 @@ export function HoloCardPreview({ src, alt, glowColor = "#d9b35e", onClick }: Ho
     el.style.setProperty("--holo-bg-x", "50%");
     el.style.setProperty("--holo-bg-y", "50%");
     el.style.setProperty("--holo-distance", "0");
-    el.style.setProperty("--holo-opacity", "0.42");
+    el.style.setProperty("--holo-opacity", "0.18");
   };
 
   useEffect(() => () => {
