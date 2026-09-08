@@ -5,26 +5,13 @@ import "./HoloCardPreview.css";
 type HoloCardPreviewProps = {
   src: string;
   alt: string;
-  title: string;
-  identity?: string;
-  description?: string;
-  cardNumber?: string;
   glowColor?: string;
   onClick?: () => void;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-export function HoloCardPreview({
-  src,
-  alt,
-  title,
-  identity,
-  description,
-  cardNumber,
-  glowColor = "#d9b35e",
-  onClick,
-}: HoloCardPreviewProps) {
+export function HoloCardPreview({ src, alt, glowColor = "#d9b35e", onClick }: HoloCardPreviewProps) {
   const cardRef = useRef<HTMLButtonElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const pendingRef = useRef<{ x: number; y: number } | null>(null);
@@ -39,10 +26,10 @@ export function HoloCardPreview({
 
     el.style.setProperty("--holo-pointer-x", `${x}%`);
     el.style.setProperty("--holo-pointer-y", `${y}%`);
-    el.style.setProperty("--holo-rotate-x", `${-cy * 4}deg`);
-    el.style.setProperty("--holo-rotate-y", `${cx * 5}deg`);
-    el.style.setProperty("--holo-bg-x", `${50 - cx * 9}%`);
-    el.style.setProperty("--holo-bg-y", `${50 - cy * 10}%`);
+    el.style.setProperty("--holo-rotate-x", `${-cy * 5}deg`);
+    el.style.setProperty("--holo-rotate-y", `${cx * 6}deg`);
+    el.style.setProperty("--holo-bg-x", `${50 - cx * 10}%`);
+    el.style.setProperty("--holo-bg-y", `${50 - cy * 12}%`);
     el.style.setProperty("--holo-distance", distance.toFixed(3));
     el.style.setProperty("--holo-opacity", "1");
   };
@@ -96,29 +83,9 @@ export function HoloCardPreview({
         onClick={onClick}
       >
         <span className="holo-card-preview__face">
-          <span className="holo-card-preview__artwork">
-            <img className="holo-card-preview__image" src={src} alt={alt} draggable={false} />
-            <span className="holo-card-preview__shine" aria-hidden="true" />
-            <span className="holo-card-preview__glare" aria-hidden="true" />
-
-            <span className="holo-card-preview__content">
-              <span className="holo-card-preview__title">{title}</span>
-              {identity && (
-                <span className="holo-card-preview__identity">
-                  <span className="holo-card-preview__rule" aria-hidden="true" />
-                  <span>{identity}</span>
-                  <span className="holo-card-preview__rule holo-card-preview__rule--right" aria-hidden="true" />
-                </span>
-              )}
-              {description && (
-                <span className="holo-card-preview__description">{description}</span>
-              )}
-            </span>
-          </span>
-
-          {cardNumber && (
-            <span className="holo-card-preview__number">{cardNumber}</span>
-          )}
+          <img className="holo-card-preview__image" src={src} alt={alt} draggable={false} />
+          <span className="holo-card-preview__shine" aria-hidden="true" />
+          <span className="holo-card-preview__glare" aria-hidden="true" />
         </span>
       </button>
     </div>

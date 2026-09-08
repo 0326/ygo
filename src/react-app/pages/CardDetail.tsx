@@ -52,10 +52,6 @@ export default function CardDetail() {
   const name = cardName(card, lang);
   const eff = cardEffect(card, lang);
   const archName = card.archetype ? (lang === "cn" ? card.archetype.cn_name : card.archetype.en_name) : "";
-  const previewIdentity = isMonster
-    ? [card.race ? raceName(card.race, lang) : "", frameName(card.frame, lang)].filter(Boolean).join(" · ")
-    : [card.race ? raceName(card.race, lang) : "", cardTypeName(card.card_type, lang)].filter(Boolean).join(" · ");
-  const previewNumber = card.prints[0]?.card_number || String(card.id);
 
   return (
     <div className="container page fade-in">
@@ -71,10 +67,6 @@ export default function CardDetail() {
           <HoloCardPreview
             src={imgFull(art?.image_key || card.id, lang)}
             alt={name}
-            title={name}
-            identity={previewIdentity}
-            description={eff.effect || undefined}
-            cardNumber={previewNumber}
             glowColor={fc.base}
             onClick={() => setZoom(true)}
           />
