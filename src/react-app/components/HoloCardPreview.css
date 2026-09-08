@@ -18,47 +18,103 @@
   width: 100%;
   padding: 0;
   border: 0;
-  border-radius: var(--radius);
   background: transparent;
   cursor: zoom-in;
   transform-style: preserve-3d;
   transform: rotateX(var(--holo-rotate-x)) rotateY(var(--holo-rotate-y)) translateZ(0);
-  transition: transform 150ms ease-out, filter 220ms ease;
+  transition: transform 160ms ease-out, filter 220ms ease;
   will-change: transform;
   isolation: isolate;
 }
 
 .holo-card-preview__tilt:hover,
 .holo-card-preview__tilt:focus-visible {
-  filter: drop-shadow(0 14px 20px rgba(0, 0, 0, .28));
+  filter: drop-shadow(0 15px 22px rgba(0, 0, 0, .30));
 }
 
 .holo-card-preview__tilt:focus-visible {
   outline: 2px solid var(--gold);
-  outline-offset: 4px;
+  outline-offset: 5px;
+  border-radius: var(--radius);
 }
 
+/*
+ * Myth collectible card composition:
+ * one physical outer frame + full-art image + independent information layers.
+ * The frame is CSS-only so no third-party card artwork/assets are copied.
+ */
 .holo-card-preview__face {
   position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 1 / 1.4665;
   overflow: hidden;
-  border-radius: var(--radius);
-  border: 1px solid var(--line-strong);
+  border-radius: 5.2% / 3.6%;
+  container-type: inline-size;
+  background:
+    radial-gradient(
+      circle at var(--holo-pointer-x) var(--holo-pointer-y),
+      rgba(255, 246, 185, .40),
+      transparent 25%
+    ),
+    linear-gradient(
+      135deg,
+      #6f541d 0%,
+      #c89b36 8%,
+      #f0d474 19%,
+      #a87922 36%,
+      #f4dd83 53%,
+      #b48125 72%,
+      #ead06d 89%,
+      #72531b 100%
+    );
+  box-shadow:
+    0 11px 30px color-mix(in srgb, var(--holo-glow) 10%, transparent),
+    var(--shadow-2),
+    inset 0 0 0 1px rgba(255, 247, 193, .34);
+  transform: translateZ(.01px);
+}
+
+/* Subtle metal grain lives only on the physical frame. */
+.holo-card-preview__face::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(
+      108deg,
+      rgba(255,255,255,.08) 0 1px,
+      transparent 1px 4px,
+      rgba(74,48,7,.05) 4px 5px,
+      transparent 5px 9px
+    ),
+    radial-gradient(
+      circle at var(--holo-pointer-x) var(--holo-pointer-y),
+      rgba(255,255,255,.20),
+      transparent 22%
+    );
+  mix-blend-mode: soft-light;
+  opacity: calc(.26 + var(--holo-distance) * .12);
+}
+
+.holo-card-preview__artwork {
+  position: absolute;
+  inset: 3.35% 3.35% 6.4%;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 3.2% / 2.2%;
   background: var(--bg-2);
   box-shadow:
-    0 10px 28px color-mix(in srgb, var(--holo-glow) 10%, transparent),
-    var(--shadow-2),
-    inset 0 0 0 1px rgba(255, 255, 255, .035);
-  transform: translateZ(0.01px);
+    inset 0 0 0 1px rgba(23, 15, 4, .62),
+    0 0 0 1px rgba(255, 239, 166, .30);
 }
 
 .holo-card-preview__image,
 .holo-card-preview__shine,
-.holo-card-preview__glare,
-.holo-card-preview__shine::before,
-.holo-card-preview__shine::after {
+.holo-card-preview__glare {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -69,107 +125,168 @@
 
 .holo-card-preview__image {
   object-fit: cover;
+  object-position: center center;
   user-select: none;
   z-index: 1;
   transform: translateZ(.1px);
 }
 
+/* Keep the existing foil interaction deliberately restrained. */
 .holo-card-preview__shine {
   z-index: 2;
-  opacity: calc(.035 + var(--holo-opacity) * .17);
+  opacity: calc(.025 + var(--holo-opacity) * .12);
   background-image:
     radial-gradient(
       circle at var(--holo-pointer-x) var(--holo-pointer-y),
-      rgba(255,255,255,.32) 0%,
-      rgba(255,255,255,.15) 8%,
-      rgba(255,255,255,.04) 18%,
-      transparent 30%
+      rgba(255,255,255,.26) 0%,
+      rgba(255,255,255,.10) 9%,
+      rgba(255,255,255,.025) 20%,
+      transparent 32%
     ),
     repeating-linear-gradient(
       118deg,
-      rgba(255, 92, 115, .28) 0%,
-      rgba(255, 218, 105, .24) 9%,
-      rgba(134, 226, 170, .26) 18%,
-      rgba(108, 205, 240, .27) 27%,
-      rgba(139, 151, 238, .25) 36%,
-      rgba(211, 128, 238, .25) 45%,
-      rgba(255, 92, 115, .28) 54%
-    ),
-    linear-gradient(
-      135deg,
-      rgba(255,255,255,.10),
-      rgba(0,0,0,.08) 45%,
-      rgba(255,255,255,.07) 60%,
-      rgba(0,0,0,.10)
+      rgba(255, 112, 132, .20) 0%,
+      rgba(255, 222, 121, .18) 10%,
+      rgba(145, 221, 174, .18) 20%,
+      rgba(124, 204, 232, .19) 30%,
+      rgba(153, 162, 229, .18) 40%,
+      rgba(215, 143, 225, .18) 50%,
+      rgba(255, 112, 132, .20) 60%
     );
-  background-size: 120% 120%, 360% 360%, 190% 190%;
+  background-size: 120% 120%, 380% 380%;
   background-position:
     var(--holo-pointer-x) var(--holo-pointer-y),
-    var(--holo-bg-x) var(--holo-bg-y),
-    calc(100% - var(--holo-bg-x)) calc(100% - var(--holo-bg-y));
-  background-blend-mode: screen, soft-light, soft-light;
+    var(--holo-bg-x) var(--holo-bg-y);
+  background-blend-mode: screen, soft-light;
   mix-blend-mode: soft-light;
-  filter: brightness(calc(.96 + var(--holo-distance) * .06)) contrast(1.08) saturate(.9);
+  filter: brightness(calc(.98 + var(--holo-distance) * .04)) saturate(.82);
   will-change: opacity, background-position, filter;
-}
-
-.holo-card-preview__shine::before,
-.holo-card-preview__shine::after {
-  content: "";
-}
-
-.holo-card-preview__shine::before {
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255,255,255,.07) 0 1px,
-      rgba(0,0,0,.035) 1px 3px,
-      transparent 3px 6px
-    ),
-    repeating-linear-gradient(
-      145deg,
-      transparent 0 16px,
-      rgba(255,255,255,.045) 16px 17px,
-      transparent 17px 32px
-    );
-  background-position:
-    calc(var(--holo-bg-x) * 1.2) calc(var(--holo-bg-y) * .9),
-    calc(100% - var(--holo-bg-x)) var(--holo-bg-y);
-  mix-blend-mode: overlay;
-  opacity: .32;
-}
-
-.holo-card-preview__shine::after {
-  background:
-    conic-gradient(
-      from 210deg at var(--holo-pointer-x) var(--holo-pointer-y),
-      transparent 0deg,
-      rgba(255,255,255,.055) 45deg,
-      rgba(132, 218, 238, .06) 85deg,
-      transparent 135deg,
-      rgba(229, 151, 210, .045) 220deg,
-      transparent 300deg
-    );
-  mix-blend-mode: screen;
-  opacity: calc(.025 + var(--holo-distance) * .10);
-  filter: blur(.5px);
 }
 
 .holo-card-preview__glare {
   z-index: 3;
-  opacity: calc(.025 + var(--holo-opacity) * .12);
-  background:
-    radial-gradient(
-      farthest-corner circle at var(--holo-pointer-x) var(--holo-pointer-y),
-      rgba(255,255,255,.30) 0%,
-      rgba(255,255,255,.10) 9%,
-      rgba(255,255,255,.025) 24%,
-      transparent 58%,
-      rgba(0,0,0,.10) 100%
-    );
+  opacity: calc(.018 + var(--holo-opacity) * .08);
+  background: radial-gradient(
+    farthest-corner circle at var(--holo-pointer-x) var(--holo-pointer-y),
+    rgba(255,255,255,.24) 0%,
+    rgba(255,255,255,.075) 10%,
+    transparent 31%
+  );
   mix-blend-mode: overlay;
-  filter: brightness(1.01) contrast(1.04);
   will-change: opacity, background-position;
+}
+
+/* Text is intentionally independent from the frame artwork, like a TCG template layer. */
+.holo-card-preview__content {
+  position: absolute;
+  z-index: 5;
+  left: 5.2%;
+  right: 5.2%;
+  bottom: 4.6%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.3cqw;
+  pointer-events: none;
+  text-align: center;
+}
+
+.holo-card-preview__title,
+.holo-card-preview__identity,
+.holo-card-preview__description {
+  color: #11100e;
+  text-shadow: none;
+  paint-order: stroke fill;
+}
+
+.holo-card-preview__title {
+  display: block;
+  max-width: 94%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 7.1cqw;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: .015em;
+  -webkit-text-stroke: 1.25px rgba(255,255,255,.96);
+}
+
+.holo-card-preview__identity {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.1cqw;
+  font-family: var(--font);
+  font-size: 4.15cqw;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: .035em;
+  -webkit-text-stroke: .9px rgba(255,255,255,.96);
+}
+
+.holo-card-preview__identity > span:not(.holo-card-preview__rule) {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.holo-card-preview__rule {
+  position: relative;
+  flex: 1 1 22%;
+  max-width: 22%;
+  min-width: 10%;
+  height: 4px;
+  background: linear-gradient(
+    to bottom,
+    #fff 0 1px,
+    #111 1px 3px,
+    #fff 3px 4px
+  );
+  clip-path: polygon(0 25%, 88% 25%, 94% 0, 100% 50%, 94% 100%, 88% 75%, 0 75%);
+}
+
+.holo-card-preview__rule--right {
+  transform: scaleX(-1);
+}
+
+.holo-card-preview__description {
+  display: -webkit-box;
+  width: 94%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-family: var(--font);
+  font-size: 3.55cqw;
+  font-weight: 400;
+  line-height: 1.38;
+  letter-spacing: .01em;
+  -webkit-text-stroke: .72px rgba(255,255,255,.96);
+}
+
+.holo-card-preview__number {
+  position: absolute;
+  z-index: 6;
+  left: 10%;
+  right: 10%;
+  bottom: 1.15%;
+  display: block;
+  overflow: hidden;
+  color: #17120b;
+  font-family: var(--font);
+  font-size: 3.35cqw;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: .11em;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: none;
+  pointer-events: none;
 }
 
 .holo-card-preview__tilt::after {
@@ -180,11 +297,11 @@
   border-radius: var(--radius);
   background: radial-gradient(
     circle at var(--holo-pointer-x) var(--holo-pointer-y),
-    color-mix(in srgb, var(--holo-glow) 18%, transparent),
+    color-mix(in srgb, var(--holo-glow) 14%, transparent),
     transparent 42%
   );
   filter: blur(14px);
-  opacity: calc(.08 + var(--holo-distance) * .10);
+  opacity: calc(.06 + var(--holo-distance) * .08);
   transform: translateZ(-1px);
   pointer-events: none;
 }
@@ -194,8 +311,8 @@
     perspective: 720px;
   }
 
-  .holo-card-preview__shine {
-    opacity: calc(.03 + var(--holo-opacity) * .14);
+  .holo-card-preview__artwork {
+    inset: 3.2% 3.2% 6.2%;
   }
 }
 
@@ -207,6 +324,6 @@
 
   .holo-card-preview__shine,
   .holo-card-preview__glare {
-    opacity: .08;
+    opacity: .045;
   }
 }
